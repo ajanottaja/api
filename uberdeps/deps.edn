@@ -1,0 +1,3 @@
+{:paths ["classes" ]
+ :deps {uberdeps/uberdeps {:mvn/version "1.0.4"}}
+ :jvm-opts ["-Dmalli.registry/type=custom"]}

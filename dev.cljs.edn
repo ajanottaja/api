@@ -1,0 +1,10 @@
+^{:auto-bundle :webpack
+  :client-log-level :finest
+  :log-level :debug
+  :watch-dirs ["src/cljs" "src/cljc"]
+  :css-dirs ["src/css"]}
+{:main ajanottaja.app
+ :watch-dirs ["src/cljs" "src/cljc"]
+ :bundle-freq :smart
+ :preloads [sci.core]
+ :closure-defines {malli.registry/type "custom"}}

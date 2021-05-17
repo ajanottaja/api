@@ -1,0 +1,1 @@
+{:lint-as #:malli.schema{defn schema.core/defn}, :linters {:type-mismatch {:namespaces {ajanottaja.jwt {fetch-jwks! {:arities {2 {:args [:string {:op :keys, :req {:timeout :int, :retries :int}}], :ret :string}}}}}}}}

@@ -1,0 +1,101 @@
+(ns ajanottaja.backend.db
+  (:require [ajanottaja.backend.db.range]
+            [ajanottaja.backend.db.interval]
+            [ajanottaja.backend.db.pg-object :as pg-object]
+            [ajanottaja.backend.config :as config]
+            [ajanottaja.shared.failjure :as f]
+            [cambium.core :as log]
+            [malli.core :as m]
+            [malli.error :as me]
+            [mount.lite :refer (defstate) :as mount]
+            [next.jdbc :as jdbc]
+            [next.jdbc.sql :as sql]
+            [next.jdbc.connection :as connection]
+            [next.jdbc.result-set :as rs]
+            [next.jdbc.prepare :as p]
+            [next.jdbc.date-time :refer [read-as-local read-as-instant]]
+            [next.jdbc.types :as types]
+            [hikari-cp.core :as hk]
+            [honey.sql :as hsql]
+            [honey.sql.helpers :as helpers]
+            [camel-snake-kebab.core :as csk]
+            [tick.core :as tick])
+  (:import [org.postgresql.util PGInterval PGobject]
+           [java.sql PreparedStatement SQLException]
+           [java.time Duration]))
+
+
+;; Call this so all dates are read as local dates
+(read-as-instant)
+
+(def jdbc-opts
+  {:builder-fn rs/as-unqualified-kebab-maps
+   :column-fn csk/->Camel_Snake_Case_String
+   :table-fn csk/->Camel_Snake_Case_String})
+
+
+(defn try-insert!
+  "Insert some record into "
+  [datasource table data]
+  (log/debug {:table table} "Inserting data into database")
+  (try (sql/insert! @datasource table data jdbc-opts)
+       (catch SQLException e (f/fail {:error (ex-message e)
+                                      :code (.getSQLState e)
+                                      :stacktrace (.getStackTrace e)}))
+       (catch Exception e (f/fail {:error (ex-message e)
+                                   :stacktrace (.getStackTrace e)}))))
+
+(defn query!
+  "Run a query with default parameters"
+  [datasource query]
+  (log/info {:query query} "Run database query")
+  (let [result (sql/query @datasource query jdbc-opts)]
+    (tap> result)
+    result))
+
+
+(defn dbspec
+  "Create a dbspec options map based on provided config. Expects :db-user, :db-password,
+  :db-name, :db-host, and :db-port to be provided."
+  [db-config]
+  {:adapter "postgresql"
+   :username (:user db-config)
+   :password (:password db-config)
+   :database-name   (:name db-config)
+   :server-name     (:host db-config)
+   :port-number     (:port db-config)})
+
+(defn start-datasource!
+  [config]
+  (log/info "Starting Hikari database connection pool")
+  (let [ds (hk/make-datasource (dbspec (:db config)))]
+    ds))
+
+(defn stop-datasource!
+  [datasource]
+  (log/info "Closing Hikari database connection pool")
+  (.close datasource))
+
+#_:clj-kondo/ignore
+(defstate datasource
+  :start (start-datasource! @config/config)
+  :stop (stop-datasource! @datasource))
+
+(comment
+  ;; Duration to PGInterval conversion
+  (duration->pg-interval (tick.core/new-duration 8 :hours))
+  (pg-interval->duration (duration->pg-interval (tick.core/new-duration 8 :hours)))
+
+  ;; Starting just the datasource
+  (mount/start #'datasource)
+
+  ;; Inserting an account record into the database
+  (try-insert! @datasource :accounts {:auth0_id "foo bar baz"})
+
+  (insert! @datasource :work_interval {:workdate "foo"})
+
+  (require '[tick.alpha.api :as t])
+
+  (type (t/new-period 100 :days))
+
+  )

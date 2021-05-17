@@ -1,0 +1,26 @@
+version: '3.1'
+
+services:
+
+  postgres:
+    image: postgres:latest
+    restart: on-failure
+    ports:
+      - 127.0.0.1:5432:5432
+    volumes:
+      - ./postgresql/data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ajanottaja
+      POSTGRES_USER: ajanottaja
+      POSTGRES_PASSWORD: supersecretdev
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    restart: on-failure
+    ports:
+      - 5433:80
+    volumes:
+      - ./pgadmin:/var/lib/pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ajanottaja@snorre.io
+      PGADMIN_DEFAULT_PASSWORD: supersecretdev

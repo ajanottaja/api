@@ -1,0 +1,14 @@
+.calva
+.lsp
+.cpcache
+.clj-kondo/.cache
+.vscode
+dev/*
+!dev/docker-compose.yml
+target
+target/public/*
+!target/public/index.html
+node_modules
+classes
+.DS_Store
+.secrets.edn

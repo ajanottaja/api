@@ -1,5 +1,8 @@
 (ns ajanottaja.backend.migrations
-  (:require [migratus.core :as migratus]))
+  (:require [ajanottaja.backend.db :as db]
+            [cambium.core :as log]
+            [migratus.core :as migratus]
+            [mount.lite :refer [defstate] :as mount]))
 
 
 (defn config
@@ -16,6 +19,12 @@
 (defn rollback!
   [datasource]
   (migratus/rollback (config datasource)))
+
+#_:clj-kondo/ignore
+(defstate migrations
+  :start (migrate! @db/datasource)
+  :stop  (log/info "Spinning down migrations"))
+
 
 (comment
   (migratus/create (config nil) "setup")

@@ -1,5 +1,6 @@
 (ns ajanottaja.backend.core
   (:require [cambium.core :as log]
+            [ajanottaja.backend.migrations]
             [ajanottaja.backend.server]
             [ajanottaja.shared.schemas]
             [mount.lite :as mount])

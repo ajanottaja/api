@@ -24,7 +24,7 @@ ENV AJANOTTAJA_DB_PORT=5432 \
     AJANOTTAJA_DB_NAME=ajanottaja \
     AJANOTTAJA_DB_USER=ajanottaja \
     AJANOTTAJA_SERVER_IP=0.0.0.0 \
-    AJANOTTAJA_SERVER_PORT=5432
+    AJANOTTAJA_SERVER_PORT=3000
 
 RUN addgroup -S ajanottaja \
     && adduser -S ajanottaja -G ajanottaja

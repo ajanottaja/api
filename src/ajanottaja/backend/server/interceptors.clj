@@ -111,14 +111,14 @@
 
 
 (defn transform-claims
-  "Replaces the sub claim with the io.snorre.ajanottaja/sub claim.
+  "Replaces the sub claim with the https://ajanottaja.app/sub claim.
    This is done so that the sub claim uses the internal user id from Ajanottaja.
    Note that the reverse domain format of the claim is done to ensure uniqueness."
   []
   {:name ::rewrite-auth0-sub
    :enter (fn [ctx]
             (log/info (-> ctx :request :claims) "Rewrite the sub claim with internal ajanottaja id")
-            (if-let [sub (-> ctx :request :claims :https://ajanottaja.snorre.io/sub)]
+            (if-let [sub (-> ctx :request :claims :https://ajanottaja.app/sub)]
               (assoc-in ctx [:request :claims :sub] sub)
               (short-circuit ctx {:status 403 :body {:message "Not authorized"}})))})
 

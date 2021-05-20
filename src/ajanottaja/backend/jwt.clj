@@ -59,7 +59,7 @@
    [:iat :int]
    [:exp :int]
    [:azp :string]
-   [:https://ajanottaja.snorre.io/sub :uuid]])
+   [:https://ajanottaja.app/sub :uuid]])
 
 
 (defn fetch-jwks!

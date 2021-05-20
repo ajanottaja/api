@@ -1,12 +1,13 @@
 ;; Default dev config, should be overwritten using env vars or similar in prod
 {:secrets #include #or [#env AJANOTTAJA_SECRETS_FILE ".secrets.edn"]
- :env :dev
+ :env #or [#env AJANOTTAJA_ENV :dev]
  :db {:host #or [#env AJANOTTAJA_DB_HOST "localhost"]
       :port #or [#env AJANOTTAJA_DB_PORT "5432"]
       :name #or [#env AJANOTTAJA_DB_NAME "ajanottaja"]
       :user #or [#env AJANOTTAJA_DB_USER "ajanottaja"]
       :password  #ref [:secrets :db :password]}
- :server {:ip #or [#env AJANOTTAJA_SERVER_IP "127.0.0.1"]
+ :server {:url #or [#env AJANOTTAJA_SERVER_URL "http://localhost:3000"]
+          :ip #or [#env AJANOTTAJA_SERVER_IP "127.0.0.1"]
           :port #or [#env AJANOTTAJA_SERVER_PORT 3000]
           :cors-config {:allowed-request-methods [:post :get]
                         :allowed-request-headers ["Authorization" "Content-Type"]

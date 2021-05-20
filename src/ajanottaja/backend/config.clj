@@ -20,11 +20,11 @@
 (def db-config-schema
   "Malli schema for database configuration map"
   [:map
-   [:host string?]
+   [:host :string]
    [:port port?]
-   [:user string?]
-   [:password string?]
-   [:name string?]])
+   [:user :string]
+   [:password :string]
+   [:name :string]])
 
 (def request-method?
   [:enum :get :post :put :patch :delete])
@@ -33,16 +33,17 @@
   "Malli schema for cors config"
   [:map
    [:allowed-request-methods [:sequential request-method?]
-    :allowed-request-headers [:sequential string?]
-    :origins [:sequential string?]
-    :max-age int?]])
+    :allowed-request-headers [:sequential :string]
+    :origins [:sequential :string]
+    :max-age :int]])
 
 (def server-config-schema
   "Malli schema for server configuration map"
   [:map
-   [:port port?
+   [:url :string
+    :port port?
     :cors-config cors-config-schema
-    :api-token string?]])
+    :api-token :string]])
 
 (def config-schema
   "Malli schema definition for app wide configuration"
@@ -92,6 +93,7 @@
 
   ;; Read config file and explain any errors
   (->> (read-config "resources/config.edn")
+       (#(m/decode config-schema % malli.transform/string-transformer))
        :db
        (m/explain db-config-schema)
        me/humanize)

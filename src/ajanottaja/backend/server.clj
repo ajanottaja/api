@@ -150,8 +150,7 @@
         {:path "/api-docs"
          :config {:validatorUrl nil
                   :operationsSorter "alpha"
-                  :oauth2RedirectUrl "https://ajanottaja.snorre.io/api-docs/oauth2-redirect.html"
-                  :oauth2ClientId "5CxrNVcPBmZyKfOgvSbZT0LSYuJJ1Oom"}})
+                  :oauth2RedirectUrl (str (:url config) "/api-docs/oauth2-redirect.html")}})
    (ring/create-default-handler))
    {:executor reitit.interceptor.sieppari/executor
     :interceptors [(cors/cors-interceptor config)]}))

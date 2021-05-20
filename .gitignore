@@ -12,3 +12,4 @@ node_modules
 classes
 .DS_Store
 .secrets.edn
+.nrepl-port

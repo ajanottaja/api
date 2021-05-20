@@ -4,6 +4,8 @@
 
 (defn div [& numbers] (java.lang.Math/floor (apply / numbers)))
 
+;; Consider replacing with one from wikipedia which seem simpler
+;; https://en.wikipedia.org/wiki/Date_of_Easter
 ;; https://gist.github.com/werand/2387286
 ;; http://en.wikipedia.org/wiki/Computus
 ;; Using the algorithm from http://www.bitshift.me/calculate-easter-in-clojure/ with a small

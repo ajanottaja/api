@@ -48,7 +48,7 @@
 (def config-schema
   "Malli schema definition for app wide configuration"
   [:map
-   [:env [:enum :dev :prod]]
+   [:env [:and :keyword [:enum :dev :prod]]]
    [:db db-config-schema]
    [:server server-config-schema]])
 

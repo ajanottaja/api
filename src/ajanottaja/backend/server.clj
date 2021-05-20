@@ -169,13 +169,13 @@
 
 
 (defn start-server!
-  [config state]
-  (log/info {:port (:port config)} "Start server")
-  (let [server (httpkit/run-server (if (= :dev (:env config))
-                                     (dev-app! config state)
-                                     (prod-app! config state))
-                                   config)]
-    (log/info config "🚀 Server started")
+  [env server-config state]
+  (log/info {:port (:port server-config)} "Start server")
+  (let [server (httpkit/run-server (if (= :dev env)
+                                     (dev-app! server-config state)
+                                     (prod-app! server-config state))
+                                   server-config)]
+    (log/info "🚀 Server started")
     server))
 
 (defn stop-server!
@@ -185,7 +185,9 @@
 
 #_:clj-kondo/ignore
 (defstate server
-  :start (start-server! (:server @config/config) {:datasource db/datasource})
+  :start (start-server! (:env @config/config)
+                        (:server @config/config)
+                        {:datasource db/datasource})
   :stop (stop-server! @server))
 
 

@@ -15,7 +15,7 @@
 
 (def port?
   "Malli definition of port number"
-  [:and int? [:< {:error/message "Should be a port number <= 65535"} 65535]])
+  [:and :int [:< {:error/message "Should be a port number <= 65535"} 65535]])
 
 (def db-config-schema
   "Malli schema for database configuration map"
@@ -40,10 +40,10 @@
 (def server-config-schema
   "Malli schema for server configuration map"
   [:map
-   [:url :string
-    :port port?
-    :cors-config cors-config-schema
-    :api-token :string]])
+   [:url :string]
+   [:port port?]
+   [:cors-config cors-config-schema]
+   [:api-token :string]])
 
 (def config-schema
   "Malli schema definition for app wide configuration"
@@ -51,9 +51,6 @@
    [:env [:and :keyword [:enum :dev :prod]]]
    [:db db-config-schema]
    [:server server-config-schema]])
-
-(comment
-  (System/getProperty "user.dir"))
 
 
 (defn ^:private resolve-includes
@@ -88,15 +85,18 @@
   ;; Deref the config state 
   @config
 
+  (m/decode [:map [:port [:and int? [:< {:error/message "Should be a port number <= 65535"} 65535]]]]
+            {:port "3000"} mt/string-transformer)
+
 
   (resolve-includes nil ".secrets.edn")
 
   ;; Read config file and explain any errors
   (->> (read-config "resources/config.edn")
        (#(m/decode config-schema % malli.transform/string-transformer))
-       :db
-       (m/explain db-config-schema)
-       me/humanize)
+       #_:db
+       #_(m/explain db-config-schema)
+       #_me/humanize)
 
   ;; Example error for an empty config
   (me/humanize (m/explain config-schema {})))

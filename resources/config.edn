@@ -1,7 +1,7 @@
 ;; Default dev config, should be overwritten using env vars or similar in prod
 {:secrets #include #or [#env AJANOTTAJA_SECRETS_FILE ".secrets.edn"]
  :env #or [#env AJANOTTAJA_ENV :dev]
- :db {:host #or [#env AJANOTTAJA_DB_HOST "localhost"]
+ :db {:host #or [#env AJANOTTAJA_DB_HOST "snorre"]
       :port #or [#env AJANOTTAJA_DB_PORT "5432"]
       :name #or [#env AJANOTTAJA_DB_NAME "ajanottaja"]
       :user #or [#env AJANOTTAJA_DB_USER "ajanottaja"]

@@ -7,6 +7,7 @@
             [ajanottaja.backend.db :refer [try-insert! query!]]
             [ajanottaja.backend.server.interceptors :as interceptors]
             [ajanottaja.shared.failjure :as f]
+            [ajanottaja.shared.schemas.responses :as res-schemas]
             [ajanottaja.shared.schemas.time :as schemas]))
 
 (defn workday-upsert
@@ -22,8 +23,6 @@
    :do-update-set [:work-duration]
    :returning [:id]})
 
-
-
 (defn create-work-interval
   "Takes map of workday and work-interval attributes and
    returns a honey-sql map for upsering a workday row, and
@@ -35,7 +34,6 @@
                  {:select [[:workdays-insert.id] [[[:lift interval]]]]
                   :from [:workdays-insert]}]
    :returning :*})
-
 
 (defn stop-work-interval
   [{:keys [account-id]}]
@@ -50,10 +48,24 @@
            [:= [:upper :interval] nil]]
    :returning :*})
 
+(defn active-interval
+  [{:keys [account-id]}]
+  {:select [:*]
+   :from [[:workdays :wd]]
+   :join [[:work-intervals :wi] [:= :wi.workday_id :wd.id]]
+   :where [:and
+           [:= :wd.account-id account-id]
+           [:= [:upper :wi.interval] nil]]})
 
-(comment
-  (t/now)
-  (hsql/format (stop-work-interval (java.util.UUID/randomUUID))))
+(defn intervals
+  [{:keys [work-date account-id]}]
+  {:select [:*]
+   :from [[:workdays :wd]]
+   :join [[:work-intervals :wi] [:= :wi.workday_id :wd.id]]
+   :where [:and
+           [:= :wd.account-id account-id]
+           [:= :wd.work-date work-date]]})
+
 
 (defn insert-work-interval!
   "Given datasource wrapped in atom and map of workday and work interval values
@@ -81,6 +93,27 @@
        (catch Exception e (tap> e) e)))
 
 
+(defn active-interval!
+  "Given datasource wrapped in atom and a map with account-id
+   returns any active work interval."
+  [ds m]
+  (->> (active-interval m)
+       hsql/format
+       (query! ds)
+       first))
+
+(defn intervals!
+  [ds m]
+  (->> (intervals m)
+       hsql/format
+       (query! ds)))
+
+(comment
+  (active-interval!
+   ajanottaja.backend.db/datasource
+   {:account-id #uuid "c3ce6f30-4b13-4252-8799-80783f3d3546"}))
+
+
 (defn routes
   "Defines all the routes for timing related stuff"
   [server-config]
@@ -90,22 +123,52 @@
     :interceptors [(interceptors/validate-bearer-token (:jwks-url server-config))
                    (interceptors/transform-claims)]
     :swagger {:security [{:bearer []}]}}
+   ["/intervals"
+    {:get {:name :intervals
+           :description "Returns list of intervals"
+           :parameters {:query (mu/select-keys schemas/workday
+                                               [:work-date])}
+           :responses {200 {:body [:sequential schemas/work-interval]}}
+           :handler (fn [req]
+                      (log/info "Fetch intervals")
+                      (f/if-let-ok? [intervals (intervals! (-> req :state :datasource)
+                                                           {:account-id (-> req :claims :sub)
+                                                            :work-date (-> req :parameters :query :work-date)})]
+                                    {:status 200
+                                     :body intervals}))}}]
+   ["/active-interval"
+    {:get {:name :active-work-interval
+           :description "Return the active work interval if any exists."
+           :responses {200 {:body schemas/work-interval}
+                       404 {:body res-schemas/not-found-schema}}
+           :handler (fn [req]
+                      (log/info "Fetch any active interval")
+                      (let [interval (active-interval! (-> req :state :datasource)
+                                                       {:account-id (-> req :claims :sub)})]
+                        (cond
+                          (nil? interval) {:status 404
+                                           :body {:status 404
+                                                  :message "Not found"}}
+                          (f/failed? interval) {:status 500
+                                                :body {:status 500
+                                                       :message "Failed to look up active interval"}}
+                          :else {:status 200
+                                 :body interval})))}}]
    ["/start-interval"
     {:post {:name :create-work-interval
             :description "Upsert workday with workday duration and adds new work interval for the provided workday."
             :parameters {:body (mu/select-keys schemas/workday
-                                               [:work-duration
-                                                :work-date])}
+                                               [:work-duration])}
             :responses {200 {:body schemas/work-interval}}
             :handler (fn [req]
                        (log/info "Insert interval")
                        (f/if-let-ok? [interval (insert-work-interval! (-> req :state :datasource)
                                                                       (-> req :parameters :body
                                                                           (assoc :account-id (-> req :claims :sub)
-                                                                                 :interval ^{:type :interval}{:beginning (t/now)})))]
-                                     (do (tap> interval)
-                                         {:status 200
-                                          :body interval})))}}]
+                                                                                 :work-date (t/today)
+                                                                                 :interval ^{:type :interval} {:beginning (t/now)})))]
+                                     {:status 200
+                                      :body interval}))}}]
    ["/stop-interval"
     {:post {:name :stop-work-interval
             :description "Stop any active work interval, returns latest interval"
@@ -132,6 +195,9 @@
                {:workday-id 1
                 :interval (->Interval (t/now) nil)})
 
+  (f/if-let-ok? [foo (f/fail nil)]
+                :ok
+                :not-ok)
 
   (->> {:select [:*]
         :from [:work-intervals]}

@@ -124,3 +124,13 @@
 
 
 
+(defn not-found
+  "Returns a 404 response if handler returns a nil value."
+  []
+  {:name ::404-not-found
+   :leave (fn [ctx]
+            (tap> (:response ctx))
+            (if (nil? (:response ctx))
+              (assoc ctx :response {:status 404
+                                    :body {:message "Not found"}})
+              ctx))})

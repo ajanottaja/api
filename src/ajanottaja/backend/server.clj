@@ -60,39 +60,10 @@
    ["/api"
     [""
      {:swagger {:security [{:bearer []}]}}
-     ["/test"
-      {:interceptors [(interceptors/validate-api-token (:api-token config))]
-       :get {:name    :test
-             :parameters {:query [:map [:x int?] [:y int?]]
-                          :header [:map [:authorization string?]]}
-             :responses {200 {:body [:map [:total int?]]}}
-             :handler (fn [req]
-                        {:status 200
-                         :body   {:total (+ (-> req :parameters :query :x)
-                                            (-> req :parameters :query :y))}})}
-       :post {:name :test-post
-              :summary "Post some wicked data"
-              :parameters {:query [:map [:x int?] [:y int?]]}
-              :response {200 {:body [:map [:total int?]]}}
-              :handler (fn [req] {:status 200
-                                  :body {:total (+ (-> req :parameters :query :x)
-                                                   (-> req :parameters :query :y))}})}}]
-     ["/test2"
-      {:interceptors [(interceptors/validate-api-token (:jwks-url config))]
-       :get {:name    :test
-             :parameters {:query [:map [:x int?] [:y int?]]}
-             :responses {200 {:body [:map [:total int?]]}}
-             :handler (fn [req]
-                        {:status 200
-                         :body   {:total (+ (-> req :parameters :query :x)
-                                            (-> req :parameters :query :y))}})}
-       :post {:name :test-post
-              :summary "Post some wicked data"
-              :parameters {:query [:map [:x int?] [:y int?]]}
-              :response {200 {:body [:map [:total int?]]}}
-              :handler (fn [req] {:status 200
-                                  :body {:total (+ (-> req :parameters :query :x)
-                                                   (-> req :parameters :query :y))}})}}]]
+     ["/healthz"
+      {:get {:name :health-check
+             :handler (constantly {:status 200
+                                   :body {:message "Ok"}})}}]]
     (auth0/routes config)
     (time/routes config)]])
 
@@ -136,7 +107,9 @@
                               ;; coercing request parameters
                               (coercion/coerce-request-interceptor)
                               ;; coercing response bodys
-                              (coercion/coerce-response-interceptor)]}})
+                              (coercion/coerce-response-interceptor)
+                              ;; Handle nil values with 404
+                              (interceptors/not-found)]}})
 
 
 (defn app!

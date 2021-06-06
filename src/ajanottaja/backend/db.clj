@@ -2,11 +2,10 @@
   (:require [ajanottaja.backend.db.range]
             [ajanottaja.backend.db.interval]
             [ajanottaja.backend.db.pg-object :as pg-object]
+            [ajanottaja.backend.db.errors :as db-errors]
             [ajanottaja.backend.config :as config]
             [ajanottaja.shared.failjure :as f]
             [cambium.core :as log]
-            [malli.core :as m]
-            [malli.error :as me]
             [mount.lite :refer (defstate) :as mount]
             [next.jdbc :as jdbc]
             [next.jdbc.sql :as sql]
@@ -33,7 +32,6 @@
    :column-fn csk/->Camel_Snake_Case_String
    :table-fn csk/->Camel_Snake_Case_String})
 
-
 (defn try-insert!
   "Insert some record into "
   [datasource table data]
@@ -45,14 +43,22 @@
        (catch Exception e (f/fail {:error (ex-message e)
                                    :stacktrace (.getStackTrace e)}))))
 
+
 (defn query!
   "Run a query with default parameters"
   [datasource query]
-  (log/info {:query query} "Run database query")
-  (let [result (sql/query @datasource query jdbc-opts)]
-    (tap> result)
-    result))
+  (log/debug {:query query} "Run database query")
+  (try (sql/query @datasource query jdbc-opts)
+       (catch SQLException e (f/fail "Failed to run sql query"
+                                     (db-errors/->error e)))
+       (catch Exception e (f/fail "Failed to run sql query"
+                                  db-errors/default-error))))
 
+  
+  (comment
+    (f/if-let-ok? [test (f/try* (throw (SQLException. "Testing")))]
+                  (println "ok")
+                  (.getMessage test)))
 
 (defn dbspec
   "Create a dbspec options map based on provided config. Expects :db-user, :db-password,

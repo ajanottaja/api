@@ -50,22 +50,20 @@
                      :tags []
                      :securityDefinitions {:bearer {:type "oauth2"
                                                     :flow "implicit"
-                                                    :authorizationUrl "https://ajanottaja.eu.auth0.com/authorize?audience=https://ajanottaja.snorre.io"
+                                                    :authorizationUrl "https://ajanottaja.eu.auth0.com/authorize?audience=https://api.ajanottaja.app"
                                                     :tokenUrl "https://ajanottaja.eu.auth0.com/oauth/token"}
                                            :apikey {:type "apiKey"
-                                                     :name "Authorization"
-                                                     :in "header"}}}
+                                                    :name "Authorization"
+                                                    :in "header"}}}
            :handler (swagger/create-swagger-handler)}}]
-   ["/api"
-    [""
-     {:swagger {:security [{:bearer []}]}}
-     ["/healthz"
-      {:get {:name :health-check
-             :handler (constantly {:status 200
-                                   :body {:message "Ok"}})}}]]
-    (auth0/routes config)
-    (time/routes config)]])
-
+   [""
+    {:swagger {:security [{:bearer []}]}}
+    ["/healthz"
+     {:get {:name :health-check
+            :handler (constantly {:status 200
+                                  :body {:message "Ok"}})}}]]
+   (auth0/routes config)
+   (time/routes config)])
 
 
 
@@ -122,7 +120,8 @@
         {:path "/"
          :config {:validatorUrl nil
                   :operationsSorter "alpha"
-                  :oauth2RedirectUrl (str (:url config) "/oauth2-redirect.html")}})
+                  :oauth2RedirectUrl (str (:url config) "/oauth2-redirect.html")
+                  :oauth2ClientId (:swaggerOauth2ClientId config)}})
    (ring/create-default-handler))
    {:executor reitit.interceptor.sieppari/executor
     :interceptors [(cors/cors-interceptor config)]}))

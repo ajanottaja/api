@@ -14,7 +14,9 @@
                         :origins ["http://localhost:3000"
                                   "http://localhost:9500"
                                   "https://dev-ajanottaja.snorre.io"
-                                  "https://ajanottaja.snorre.io"]
+                                  "https://ajanottaja.app"
+                                  "https://api.ajanottaja.app"]
                         :max-age 300}
           :api-token #ref [:secrets :server :api-token]
-          :jwks-url "https://ajanottaja.eu.auth0.com/.well-known/jwks.json"}}
+          :jwks-url "https://ajanottaja.eu.auth0.com/.well-known/jwks.json"
+          :swaggerOauth2ClientId #or [#env AJANOTTAJA_SWAGGER_OAUTH2_CLIENT "1A1BhFSU4vlS3qgMPNtgxAXR9c16KjxN"]}}

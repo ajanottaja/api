@@ -54,9 +54,15 @@
       });
       // End Swagger UI call region
 
-      ui.initOAuth({
-        clientId: '5CxrNVcPBmZyKfOgvSbZT0LSYuJJ1Oom'
-      })
+      // Not optimal to fetch config twice, but simple enough
+      fetch("./config.json")
+        .then(res => res.json())
+        .then(body => {console.log(body); return body})
+        .then(body => ui.initOAuth({
+          clientId: body.oauth2ClientId
+        }))
+        .catch(error => window.alert("Error, could not initalize client id for Oauth2 authentication."));
+      
 
       window.ui = ui;
     };

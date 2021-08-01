@@ -12,6 +12,7 @@
           :cors-config {:allowed-request-methods [:post :get]
                         :allowed-request-headers ["Authorization" "Content-Type"]
                         :origins ["http://localhost:3000"
+                                  "http://localhost:3001"
                                   "http://localhost:9500"
                                   "https://dev-ajanottaja.snorre.io"
                                   "https://ajanottaja.app"

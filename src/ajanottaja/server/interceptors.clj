@@ -97,16 +97,18 @@
   [jwks-url]
   {:name ::validate-token
    :enter (fn [ctx]
+            (tap> ctx)
             (log/info {:jwks-url jwks-url} "Validate token from header")
-            (f/if-let-ok? [claims (jwt/validate-token! jwks-url
-                                                       (-> ctx
-                                                           :request
-                                                           :headers
-                                                           (get "authorization" "")
-                                                           (string/replace-first #"Bearer " "")))]
-                          
-                          (assoc-in ctx [:request :claims] claims)
-                          (short-circuit ctx {:status 403 :body {:message "Not authorized"}})))})
+            (if (= :options (-> ctx :request :request-method))
+              ctx
+              (f/if-let-ok? [claims (jwt/validate-token! jwks-url
+                                                         (-> ctx
+                                                             :request
+                                                             :headers
+                                                             (get "authorization" "")
+                                                             (string/replace-first #"Bearer " "")))]
+                            (assoc-in ctx [:request :claims] claims)
+                            (short-circuit ctx {:status 403 :body {:message "Not authorized"}}))))})
 
 
 
@@ -118,9 +120,11 @@
   {:name ::rewrite-auth0-sub
    :enter (fn [ctx]
             (log/info (-> ctx :request :claims) "Rewrite the sub claim with internal ajanottaja id")
-            (if-let [sub (-> ctx :request :claims :https://ajanottaja.app/sub)]
-              (assoc-in ctx [:request :claims :sub] sub)
-              (short-circuit ctx {:status 403 :body {:message "Not authorized"}})))})
+            (if (= :options (-> ctx :request :request-method))
+              ctx
+              (if-let [sub (-> ctx :request :claims (keyword "https://ajanottaja.app/sub"))]
+                (assoc-in ctx [:request :claims :sub] sub)
+                (short-circuit ctx {:status 403 :body {:message "Not authorized"}}))))})
 
 
 

@@ -27,7 +27,6 @@
            org.clojure/core.memoize {:mvn/version "1.0.236"}
            org.postgresql/postgresql {:mvn/version "42.2.20"}
            org.threeten/threeten-extra {:mvn/version "1.6.0"}
-           ring-cors/ring-cors {:mvn/version "0.1.13"}
            seancorfield/next.jdbc {:mvn/version "1.1.613"}
            zerg000000/simple-cors {:mvn/version "0.0.8"}}
  :paths   ["src" "classes" "resources"]

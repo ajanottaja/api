@@ -114,7 +114,8 @@
   [config state]
   (log/info "Create reitit app for use in http-kit")
   (http/ring-handler
-   (http/router (routes config state) (router-config config state))
+   (http/router (routes config state)
+                (router-config config state))
    (ring/routes
       (swagger-ui/create-swagger-ui-handler
         {:path "/"
@@ -124,7 +125,8 @@
                   :oauth2ClientId (:swaggerOauth2ClientId config)}})
    (ring/create-default-handler))
    {:executor reitit.interceptor.sieppari/executor
-    :interceptors [(cors/cors-interceptor config)]}))
+    :interceptors [;; Cors interceptor
+                   (cors/cors-interceptor config)]}))
 
 
 (defn dev-app!

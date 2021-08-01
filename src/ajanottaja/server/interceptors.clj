@@ -97,7 +97,6 @@
   [jwks-url]
   {:name ::validate-token
    :enter (fn [ctx]
-            (tap> ctx)
             (log/info {:jwks-url jwks-url} "Validate token from header")
             (if (= :options (-> ctx :request :request-method))
               ctx
@@ -122,7 +121,7 @@
             (log/info (-> ctx :request :claims) "Rewrite the sub claim with internal ajanottaja id")
             (if (= :options (-> ctx :request :request-method))
               ctx
-              (if-let [sub (-> ctx :request :claims (keyword "https://ajanottaja.app/sub"))]
+              (if-let [sub (-> ctx :request :claims :https://ajanottaja.app/sub)]
                 (assoc-in ctx [:request :claims :sub] sub)
                 (short-circuit ctx {:status 403 :body {:message "Not authorized"}}))))})
 

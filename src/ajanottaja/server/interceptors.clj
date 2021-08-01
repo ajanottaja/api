@@ -1,12 +1,12 @@
-(ns ajanottaja.backend.server.interceptors
+(ns ajanottaja.server.interceptors
   (:require [cambium.core :as log]
             [clojure.string :as string]
             [reitit.http.interceptors.exception :as exception]
             [tick.alpha.api :as t]
             
-            [ajanottaja.shared.failjure :as f]
-            [ajanottaja.backend.jwt :as jwt]
-            [ajanottaja.shared.schemas :as schemas]))
+            [ajanottaja.failjure :as f]
+            [ajanottaja.jwt :as jwt]
+            [ajanottaja.schemas :as schemas]))
 
 
 (defn error-handler

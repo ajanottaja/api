@@ -1,4 +1,4 @@
-(ns ajanottaja.backend.domain.client
+(ns ajanottaja.domain.client
   (:require [clojure.java.io :as io]
             [cambium.core :as log]
             [hiccup.core :refer [html]]

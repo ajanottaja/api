@@ -1,4 +1,4 @@
-(ns ajanottaja.shared.failjure
+(ns ajanottaja.failjure
   "Extensions to the failjure library"
   (:require [failjure.core :as f]
             #?@(:cljs [[goog.string.format]

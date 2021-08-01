@@ -1,9 +1,9 @@
-(ns ajanottaja.backend.db.range
+(ns ajanottaja.db.range
   "Range support inspired by the nice work of dcj (Don Jackson) on Clojurians slack.
    https://clojurians.slack.com/archives/C1Q164V29/p1620584219175100
    https://github.com/dcj/coerce/blob/develop/src/coerce/jdbc/pg.clj
    "
-  (:require [ajanottaja.backend.db.pg-object :refer [pgobject->clj map->pgobject]]
+  (:require [ajanottaja.db.pg-object :refer [pgobject->clj map->pgobject]]
             [cambium.core :as log]
             [clojure.string :as string]
             [next.jdbc.prepare :as p]

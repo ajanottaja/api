@@ -1,7 +1,7 @@
-(ns ajanottaja.shared.schemas.time
+(ns ajanottaja.schemas.time
   (:require [malli.core :as m]
             [malli.util :as mu]
-            [ajanottaja.shared.schemas :as schemas]))
+            [ajanottaja.schemas :as schemas]))
 
 (def workday
   "Workday schema"

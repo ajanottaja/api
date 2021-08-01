@@ -1,8 +1,8 @@
-(ns ajanottaja.backend.core
+(ns ajanottaja.core
   (:require [cambium.core :as log]
-            [ajanottaja.backend.migrations]
-            [ajanottaja.backend.server]
-            [ajanottaja.shared.schemas]
+            [ajanottaja.migrations]
+            [ajanottaja.server]
+            [ajanottaja.schemas]
             [mount.lite :as mount])
   (:gen-class))
 

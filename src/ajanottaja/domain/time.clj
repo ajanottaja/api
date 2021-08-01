@@ -1,14 +1,14 @@
-(ns ajanottaja.backend.domain.time
+(ns ajanottaja.domain.time
   (:require [cambium.core :as log]
             [honey.sql :as hsql]
             [honey.sql.helpers :as hsqlh]
             [malli.util :as mu]
             [tick.alpha.api :as t]
-            [ajanottaja.backend.db :refer [try-insert! query!]]
-            [ajanottaja.backend.server.interceptors :as interceptors]
-            [ajanottaja.shared.failjure :as f]
-            [ajanottaja.shared.schemas.responses :as res-schemas]
-            [ajanottaja.shared.schemas.time :as schemas]))
+            [ajanottaja.db :refer [try-insert! query!]]
+            [ajanottaja.server.interceptors :as interceptors]
+            [ajanottaja.failjure :as f]
+            [ajanottaja.schemas.responses :as res-schemas]
+            [ajanottaja.schemas.time :as schemas]))
 
 (defn workday-upsert
   "Takes a map with work-date, work-interval, and account-id and
@@ -110,7 +110,7 @@
 
 (comment
   (active-interval!
-   ajanottaja.backend.db/datasource
+   ajanottaja.db/datasource
    {:account-id #uuid "c3ce6f30-4b13-4252-8799-80783f3d3546"}))
 
 

@@ -1,6 +1,6 @@
-(ns ajanottaja.backend.config
+(ns ajanottaja.config
   (:require [aero.core :refer [read-config root-resolver]]
-            [ajanottaja.shared.schemas]
+            [ajanottaja.schemas]
             [cambium.core :as log]
             [clojure.java.io :as io]
             [malli.core :as m]

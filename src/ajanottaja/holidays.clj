@@ -1,4 +1,4 @@
-(ns ajanottaja.backend.holidays
+(ns ajanottaja.holidays
   (:require [tick.core :as tick]
             [tick.calendar :as calendar]))
 

@@ -1,10 +1,10 @@
-(ns ajanottaja.backend.domain.auth0
+(ns ajanottaja.domain.auth0
   (:require [cambium.core :as log]
             [malli.util :as mu]
             [honey.sql :as hsql]
-            [ajanottaja.backend.db :refer [try-insert! query!]]
-            [ajanottaja.shared.schemas.account :as schemas]
-            [ajanottaja.backend.server.interceptors :as interceptors]))
+            [ajanottaja.db :refer [try-insert! query!]]
+            [ajanottaja.schemas.account :as schemas]
+            [ajanottaja.server.interceptors :as interceptors]))
 
 
 (def setup-account-input-schema

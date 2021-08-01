@@ -1,10 +1,10 @@
-(ns ajanottaja.backend.db
-  (:require [ajanottaja.backend.db.range]
-            [ajanottaja.backend.db.interval]
-            [ajanottaja.backend.db.pg-object :as pg-object]
-            [ajanottaja.backend.db.errors :as db-errors]
-            [ajanottaja.backend.config :as config]
-            [ajanottaja.shared.failjure :as f]
+(ns ajanottaja.db
+  (:require [ajanottaja.db.range]
+            [ajanottaja.db.interval]
+            [ajanottaja.db.pg-object :as pg-object]
+            [ajanottaja.db.errors :as db-errors]
+            [ajanottaja.config :as config]
+            [ajanottaja.failjure :as f]
             [cambium.core :as log]
             [mount.lite :refer (defstate) :as mount]
             [next.jdbc :as jdbc]

@@ -1,7 +1,7 @@
-(ns ajanottaja.shared.schemas.responses
+(ns ajanottaja.schemas.responses
   (:require [malli.core :as m]
             [malli.util :as mu]
-            [ajanottaja.shared.schemas :as schemas]))
+            [ajanottaja.schemas :as schemas]))
 
 
 (def not-found-schema

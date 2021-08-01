@@ -1,4 +1,4 @@
-(ns ajanottaja.backend.server
+(ns ajanottaja.server
   (:require [cambium.core :as log]
             [camel-snake-kebab.core :as csk]
             [malli.util :as mu]
@@ -22,12 +22,12 @@
             [simple-cors.reitit.interceptor :as cors]
 
             ;; Own namespaces
-            [ajanottaja.backend.config :as config]
-            [ajanottaja.backend.db :as db]
-            [ajanottaja.backend.domain.client :as client]
-            [ajanottaja.backend.domain.auth0 :as auth0]
-            [ajanottaja.backend.domain.time :as time]
-            [ajanottaja.backend.server.interceptors :as interceptors]))
+            [ajanottaja.config :as config]
+            [ajanottaja.db :as db]
+            [ajanottaja.domain.client :as client]
+            [ajanottaja.domain.auth0 :as auth0]
+            [ajanottaja.domain.time :as time]
+            [ajanottaja.server.interceptors :as interceptors]))
 
 (def muuntaja-instance
   (-> m/default-options
@@ -43,7 +43,6 @@
   [config state]
   (log/info "Create routes table for use in reitit http router")
   [""
-   client/client-routes
    ["/swagger.json"
     {:get {:no-doc true
            :swagger {:info {:title "Ajanottaja - Time tracking API (setup mode)"
@@ -120,10 +119,10 @@
    (http/router (routes config state) (router-config config state))
    (ring/routes
       (swagger-ui/create-swagger-ui-handler
-        {:path "/api-docs"
+        {:path "/"
          :config {:validatorUrl nil
                   :operationsSorter "alpha"
-                  :oauth2RedirectUrl (str (:url config) "/api-docs/oauth2-redirect.html")}})
+                  :oauth2RedirectUrl (str (:url config) "/oauth2-redirect.html")}})
    (ring/create-default-handler))
    {:executor reitit.interceptor.sieppari/executor
     :interceptors [(cors/cors-interceptor config)]}))

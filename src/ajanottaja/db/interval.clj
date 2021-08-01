@@ -1,4 +1,4 @@
-(ns ajanottaja.backend.db.interval
+(ns ajanottaja.db.interval
   "PGInterval support based on java.time.Duration and tick."
   (:require [next.jdbc
              [result-set :as rs]

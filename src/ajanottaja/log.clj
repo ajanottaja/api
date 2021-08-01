@@ -1,4 +1,4 @@
-(ns ajanottaja.backend.log
+(ns ajanottaja.log
   (:require [cambium.core :as log]))
 
 (defmacro info [mdc msg & forms]

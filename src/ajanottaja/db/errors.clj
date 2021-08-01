@@ -1,5 +1,5 @@
-(ns ajanottaja.backend.db.errors
-  (:require [ajanottaja.shared.failjure :as f])
+(ns ajanottaja.db.errors
+  (:require [ajanottaja.failjure :as f])
   (:import [java.sql SQLException]))
 
 (def default-error

@@ -1,4 +1,4 @@
-(ns ajanottaja.backend.jwt
+(ns ajanottaja.jwt
   (:require [buddy.core.keys :as buddy-keys]
             [buddy.sign.jwt :as jwt]
             [cambium.core :as log]
@@ -7,8 +7,8 @@
             [malli.core :as m]
             [muuntaja.core :as muuntaja]
             [org.httpkit.client :as client]
-            [ajanottaja.shared.schemas :as schemas]
-            [ajanottaja.shared.failjure :as f]))
+            [ajanottaja.schemas :as schemas]
+            [ajanottaja.failjure :as f]))
 
 (def retry-opts?
   [:map

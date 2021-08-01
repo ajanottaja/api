@@ -1,4 +1,4 @@
-(ns ajanottaja.backend.db.pg-object
+(ns ajanottaja.db.pg-object
   (:require [next.jdbc.prepare :as p]
             [next.jdbc.result-set :as rs])
   (:import [java.sql PreparedStatement]

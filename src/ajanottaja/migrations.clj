@@ -1,5 +1,5 @@
-(ns ajanottaja.backend.migrations
-  (:require [ajanottaja.backend.db :as db]
+(ns ajanottaja.migrations
+  (:require [ajanottaja.db :as db]
             [cambium.core :as log]
             [migratus.core :as migratus]
             [mount.lite :refer [defstate] :as mount]))

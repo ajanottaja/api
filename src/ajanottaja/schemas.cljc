@@ -1,4 +1,4 @@
-(ns ajanottaja.shared.schemas
+(ns ajanottaja.schemas
   (:require [clojure.string :as string]
             [malli.core :as m]
             [malli.registry :as mr]
@@ -102,11 +102,8 @@
   (m/encode :duration (t/new-duration 30 :minutes) mt/string-transformer)
 
   ;; Encoding and decoding interval maps is simple
-  (type (m/encode interval? (->Interval (t/now) (t/now)) mt/json-transformer))
   (type (m/decode interval? {:beginning "2020-01-01T10:00:00Z" :ends nil} mt/json-transformer))
 
-  ;; Valid email returns the email
-  (email? "post+ajanottaja@snorre.io")
 
   (t/date "2021-02-07T18:31:06.546874Z")
 

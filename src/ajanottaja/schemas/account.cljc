@@ -1,7 +1,7 @@
-(ns ajanottaja.shared.schemas.account
+(ns ajanottaja.schemas.account
   (:require [malli.core :as m]
             [malli.util :as mu]
-            [ajanottaja.shared.schemas :as schemas]))
+            [ajanottaja.schemas :as schemas]))
 
 
 (def account-model

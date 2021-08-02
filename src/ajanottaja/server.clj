@@ -44,7 +44,8 @@
   (log/info "Create routes table for use in reitit http router")
   [""
    ["/swagger.json"
-    {:get {:no-doc true
+    {:interceptors [(interceptors/camel-case-swagger)]
+     :get {:no-doc true
            :swagger {:info {:title "Ajanottaja - Time tracking API (setup mode)"
                             :description "Keep track of where time flies."}
                      :tags []

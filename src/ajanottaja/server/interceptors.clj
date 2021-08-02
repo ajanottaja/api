@@ -1,6 +1,8 @@
 (ns ajanottaja.server.interceptors
   (:require [cambium.core :as log]
+            [camel-snake-kebab.core :as csk]
             [clojure.string :as string]
+            [clojure.walk :as walk]
             [reitit.http.interceptors.exception :as exception]
             [tick.alpha.api :as t]
             
@@ -137,3 +139,20 @@
               (assoc ctx :response {:status 404
                                     :body {:message "Not found"}})
               ctx))})
+
+
+
+(defn camel-walk
+  "Post walk swagger spec and camelCase all keywords."
+  [t form]
+  (walk/postwalk (fn [x] (if (keyword? x) (t x) x)) form))
+
+(defn camel-case-swagger
+  "Interceptor to convert all swagger keywords to camelcase"
+  []
+  {:name ::camel-case-swagger
+   :leave (fn [ctx]
+            (tap> (update-in ctx [:response :body]
+                             (partial kebab-walk csk/->camelCaseKeyword)))
+            (update-in ctx [:response :body]
+                       (partial kebab-walk csk/->camelCaseKeyword)))})

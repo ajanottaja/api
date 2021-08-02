@@ -152,4 +152,4 @@
   {:name ::camel-case-swagger
    :leave (fn [ctx]
             (update-in ctx [:response :body]
-                       (partial kebab-walk csk/->camelCaseKeyword)))})
+                       (partial camel-walk csk/->camelCaseKeyword)))})

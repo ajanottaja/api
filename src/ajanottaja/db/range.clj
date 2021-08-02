@@ -19,7 +19,6 @@
   (let [[start end] (-> (subs s 1 (dec (count s)))
                         (string/replace #"\"" "")
                         (string/split #","))]
-    (tap> [start end])
     [(str (first s))
      start
      end

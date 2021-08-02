@@ -28,7 +28,6 @@
    returns a honey-sql map for upsering a workday row, and
    inserting a new corresponding interval row."
   [{:keys [interval] :as m}]
-  (tap> interval)
   {:with [[:workdays-insert (workday-upsert m)]]
    :insert-into [[:work-intervals [:workday-id :interval]]
                  {:select [[:workdays-insert.id] [[[:lift interval]]]]
@@ -72,12 +71,11 @@
    returns the started interval."
   [ds m]
   (log/info m "Insert work interval!")
-  (tap> m)
   (try (->> (create-work-interval m)
             hsql/format
             (query! ds)
             first)
-       (catch Exception e (tap> e) e)))
+       (catch Exception e e)))
 
 
 (defn stop-work-interval!
@@ -85,12 +83,11 @@
    work interval and returns the interval, if any."
   [ds m]
   (log/info m "Stop work interval!")
-  (tap> m)
   (try (->> (stop-work-interval m)
             hsql/format
             (query! ds)
             first)
-       (catch Exception e (tap> e) e)))
+       (catch Exception e e)))
 
 
 (defn active-interval!

@@ -134,7 +134,6 @@
   []
   {:name ::404-not-found
    :leave (fn [ctx]
-            (tap> (:response ctx))
             (if (nil? (:response ctx))
               (assoc ctx :response {:status 404
                                     :body {:message "Not found"}})
@@ -152,7 +151,5 @@
   []
   {:name ::camel-case-swagger
    :leave (fn [ctx]
-            (tap> (update-in ctx [:response :body]
-                             (partial kebab-walk csk/->camelCaseKeyword)))
             (update-in ctx [:response :body]
                        (partial kebab-walk csk/->camelCaseKeyword)))})

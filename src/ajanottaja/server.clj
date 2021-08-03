@@ -24,9 +24,8 @@
             ;; Own namespaces
             [ajanottaja.config :as config]
             [ajanottaja.db :as db]
-            [ajanottaja.domain.client :as client]
             [ajanottaja.domain.auth0 :as auth0]
-            [ajanottaja.domain.time :as time]
+            [ajanottaja.domain.interval :as interval]
             [ajanottaja.server.interceptors :as interceptors]))
 
 (def muuntaja-instance
@@ -64,7 +63,7 @@
             :handler (constantly {:status 200
                                   :body {:message "Ok"}})}}]]
    (auth0/routes config)
-   (time/routes config)])
+   (interval/routes config)])
 
 
 

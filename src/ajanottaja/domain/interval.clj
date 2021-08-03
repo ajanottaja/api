@@ -1,4 +1,4 @@
-(ns ajanottaja.domain.time
+(ns ajanottaja.domain.interval
   (:require [cambium.core :as log]
             [honey.sql :as hsql]
             [honey.sql.helpers :as hsqlh]
@@ -14,7 +14,7 @@
   "Takes a map with work-date, work-interval, and account-id and
    returns a honey-sql map for upserting a workday row, and return
    the id value for the row."
-  [{:keys [work-date work-duration account-id]}]
+  [{:keys [work-date work-duration account-id] :or {work-duration (t/new-duration (* 60 7.5) :hours)}}]
   {:insert-into :workdays
    :values [{:work-date work-date
              :work-duration work-duration
@@ -114,13 +114,13 @@
 (defn routes
   "Defines all the routes for timing related stuff"
   [server-config]
-  ["/time"
-   {:tags [:time]
+  ["/intervals"
+   {:tags [:interval]
     :description "Endpoints for registeirng work days and intervals."
     :interceptors [(interceptors/validate-bearer-token (:jwks-url server-config))
                    (interceptors/transform-claims)]
     :swagger {:security [{:bearer []}]}}
-   ["/intervals"
+   [""
     {:get {:name :intervals
            :description "Returns list of intervals"
            :parameters {:query (mu/select-keys schemas/workday
@@ -133,7 +133,7 @@
                                                             :work-date (-> req :parameters :query :work-date)})]
                                     {:status 200
                                      :body intervals}))}}]
-   ["/active-interval"
+   ["/active"
     {:get {:name :active-work-interval
            :description "Return the active work interval if any exists."
            :responses {200 {:body schemas/work-interval}
@@ -151,22 +151,20 @@
                                                        :message "Failed to look up active interval"}}
                           :else {:status 200
                                  :body interval})))}}]
-   ["/start-interval"
+   ["/start"
     {:post {:name :create-work-interval
             :description "Upsert workday with workday duration and adds new work interval for the provided workday."
-            :parameters {:body (mu/select-keys schemas/workday
-                                               [:work-duration])}
+            :parameters {}
             :responses {200 {:body schemas/work-interval}}
             :handler (fn [req]
                        (log/info "Insert interval")
                        (f/if-let-ok? [interval (insert-work-interval! (-> req :state :datasource)
-                                                                      (-> req :parameters :body
-                                                                          (assoc :account-id (-> req :claims :sub)
-                                                                                 :work-date (t/today)
-                                                                                 :interval ^{:type :interval} {:beginning (t/now)})))]
+                                                                      {:account-id (-> req :claims :sub)
+                                                                       :work-date (t/today)
+                                                                       :interval ^{:type :interval} {:beginning (t/now)}})]
                                      {:status 200
                                       :body interval}))}}]
-   ["/stop-interval"
+   ["/stop"
     {:post {:name :stop-work-interval
             :description "Stop any active work interval, returns latest interval"
             :parameters {}

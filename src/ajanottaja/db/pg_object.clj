@@ -23,7 +23,7 @@
 
 (defmulti map->pgobject
   "Convert clj edn map values to postgres value. Dispatches on the metadata
-   of the clojur eobject to figure out which method to use."
+   of the clojure object to figure out which method to use."
   #(-> % meta :type))
 
 (extend-protocol p/SettableParameter

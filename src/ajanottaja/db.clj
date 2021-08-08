@@ -27,6 +27,17 @@
 ;; Call this so all dates are read as local dates
 (read-as-instant)
 
+(hsql/format-expr (tick.core/today))
+
+(defn- contains-formatter [_f args]
+  (let [[sql & params] (hsql/format-expr-list args)]
+    (into [(str (first sql) " @> " (second sql))]
+          (flatten params))))
+
+(hsql/register-fn! :at> contains-formatter)
+
+(hsql/register-op! (keyword "@>"))
+
 (def jdbc-opts
   {:builder-fn rs/as-unqualified-kebab-maps
    :column-fn csk/->Camel_Snake_Case_String
@@ -49,9 +60,9 @@
   [datasource query]
   (log/debug {:query query} "Run database query")
   (try (sql/query @datasource query jdbc-opts)
-       (catch SQLException e (f/fail "Failed to run sql query"
+       (catch SQLException e (tap> e) (f/fail "Failed to run sql query"
                                      (db-errors/->error e)))
-       (catch Exception e (f/fail "Failed to run sql query"
+       (catch Exception e (tap> e) (f/fail "Failed to run sql query"
                                   db-errors/default-error))))
 
   

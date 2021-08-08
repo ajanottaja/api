@@ -19,7 +19,6 @@
   "Takes a PGInterval instance and converts it into a Duration
    instance. Ignore sub-second units."
   [^org.postgresql.util.PGInterval interval]
-  (println interval)
   (-> (t/new-duration 0 :seconds)
       (.plusSeconds (.getSeconds interval))
       (.plusMinutes (.getMinutes interval))

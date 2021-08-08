@@ -10,80 +10,76 @@
             [ajanottaja.schemas.responses :as res-schemas]
             [ajanottaja.schemas.time :as schemas]))
 
-(defn workday-upsert
-  "Takes a map with work-date, work-interval, and account-id and
-   returns a honey-sql map for upserting a workday row, and return
-   the id value for the row."
-  [{:keys [work-date work-duration account-id] :or {work-duration (t/new-duration (* 60 7.5) :hours)}}]
-  {:insert-into :workdays
-   :values [{:work-date work-date
-             :work-duration work-duration
-             :account-id account-id}]
-   :on-conflict [:work-date :account-id]
-   :do-update-set [:work-duration]
+(defn target-upsert
+  "Takes a map with date, interval, and account (id) and
+   returns a honey-sql map for upserting a target row, and return
+   the id and account id value for the row."
+  [{:keys [date duration account] :or {duration (t/new-duration (* 60 7.5) :hours)}}]
+  {:insert-into :targets
+   :values [{:date date
+             :duration duration
+             :account account}]
+   :on-conflict [:date :account]
+   :do-nothing []
    :returning [:id]})
 
-(defn create-work-interval
+(defn create-interval
   "Takes map of workday and work-interval attributes and
    returns a honey-sql map for upsering a workday row, and
    inserting a new corresponding interval row."
-  [{:keys [interval] :as m}]
-  {:with [[:workdays-insert (workday-upsert m)]]
-   :insert-into [[:work-intervals [:workday-id :interval]]
-                 {:select [[:workdays-insert.id] [[[:lift interval]]]]
-                  :from [:workdays-insert]}]
+  [{:keys [interval account] :as m}]
+  {:with [[:target-upsert (target-upsert m)]]
+   :insert-into :intervals
+   :values [{:account account :interval [:lift interval]}]
    :returning :*})
 
-(defn stop-work-interval
-  [{:keys [account-id]}]
-  {:with [[:workday {:select [:id]
-                     :from :workdays
-                     :where [:= :account-id account-id]}]]
-   :update :work-intervals
-   :from :workday
+
+(defn stop-interval
+  ""
+  [{:keys [account]}]
+  {:update :intervals
    :set {:interval [:tstzrange [:lower :interval] (t/now) "[)"]}
    :where [:and
-           [:= :workday.id :workday-id]
+           [:= :account account]
            [:= [:upper :interval] nil]]
    :returning :*})
 
+
 (defn active-interval
-  [{:keys [account-id]}]
+  [{:keys [account]}]
   {:select [:*]
-   :from [[:workdays :wd]]
-   :join [[:work-intervals :wi] [:= :wi.workday_id :wd.id]]
+   :from :intervals
    :where [:and
-           [:= :wd.account-id account-id]
-           [:= [:upper :wi.interval] nil]]})
+           [:= :account account]
+           [:= [:upper :interval] nil]]})
+
 
 (defn intervals
-  [{:keys [work-date account-id]}]
-  {:select [:*]
-   :from [[:workdays :wd]]
-   :join [[:work-intervals :wi] [:= :wi.workday_id :wd.id]]
+  [{:keys [account]}]
+  {:select [:id :interval]
+   :from :intervals
    :where [:and
-           [:= :wd.account-id account-id]
-           [:= :wd.work-date work-date]]})
+           [:= :account account]]
+   :order-by [:interval]})
 
-
-(defn insert-work-interval!
+(defn create-interval!
   "Given datasource wrapped in atom and map of workday and work interval values
    returns the started interval."
   [ds m]
   (log/info m "Insert work interval!")
-  (try (->> (create-work-interval m)
+  (try (->> (create-interval m)
             hsql/format
             (query! ds)
             first)
-       (catch Exception e e)))
+       (catch Exception e (tap> e) e)))
 
 
-(defn stop-work-interval!
+(defn stop-interval!
   "Given datasource wrapped in atom and map with account-id stops any active
    work interval and returns the interval, if any."
   [ds m]
   (log/info m "Stop work interval!")
-  (try (->> (stop-work-interval m)
+  (try (->> (stop-interval m)
             hsql/format
             (query! ds)
             first)
@@ -105,12 +101,6 @@
        hsql/format
        (query! ds)))
 
-(comment
-  (active-interval!
-   ajanottaja.db/datasource
-   {:account-id #uuid "c3ce6f30-4b13-4252-8799-80783f3d3546"}))
-
-
 (defn routes
   "Defines all the routes for timing related stuff"
   [server-config]
@@ -123,20 +113,19 @@
    [""
     {:get {:name :intervals
            :description "Returns list of intervals"
-           :parameters {:query (mu/select-keys schemas/workday
-                                               [:work-date])}
-           :responses {200 {:body [:sequential schemas/work-interval]}}
+           :parameters {}
+           :responses {200 {:body [:sequential (mu/select-keys schemas/interval
+                                                               [:id :interval])]}}
            :handler (fn [req]
                       (log/info "Fetch intervals")
                       (f/if-let-ok? [intervals (intervals! (-> req :state :datasource)
-                                                           {:account-id (-> req :claims :sub)
-                                                            :work-date (-> req :parameters :query :work-date)})]
+                                                           {:account (-> req :claims :sub)})]
                                     {:status 200
                                      :body intervals}))}}]
    ["/active"
-    {:get {:name :active-work-interval
+    {:get {:name :active-interval
            :description "Return the active work interval if any exists."
-           :responses {200 {:body schemas/work-interval}
+           :responses {200 {:body schemas/interval}
                        404 {:body res-schemas/not-found-schema}}
            :handler (fn [req]
                       (log/info "Fetch any active interval")
@@ -152,26 +141,26 @@
                           :else {:status 200
                                  :body interval})))}}]
    ["/start"
-    {:post {:name :create-work-interval
+    {:post {:name :create-interval
             :description "Upsert workday with workday duration and adds new work interval for the provided workday."
             :parameters {}
-            :responses {200 {:body schemas/work-interval}}
+            :responses {200 {:body schemas/interval}}
             :handler (fn [req]
                        (log/info "Insert interval")
-                       (f/if-let-ok? [interval (insert-work-interval! (-> req :state :datasource)
-                                                                      {:account-id (-> req :claims :sub)
-                                                                       :work-date (t/today)
+                       (f/if-let-ok? [interval (create-interval! (-> req :state :datasource)
+                                                                      {:account (-> req :claims :sub)
+                                                                       :date (t/today)
                                                                        :interval ^{:type :interval} {:beginning (t/now)}})]
                                      {:status 200
                                       :body interval}))}}]
    ["/stop"
-    {:post {:name :stop-work-interval
+    {:post {:name :stop-interval
             :description "Stop any active work interval, returns latest interval"
             :parameters {}
-            :responses {200 {:body schemas/work-interval}}
+            :responses {200 {:body schemas/interval}}
             :handler (fn [req]
-                       (f/if-let-ok? [interval (stop-work-interval! (-> req :state :datasource)
-                                                                    {:account-id (-> req :claims :sub)})]
+                       (f/if-let-ok? [interval (stop-interval! (-> req :state :datasource)
+                                                               {:account (-> req :claims :sub)})]
                                      {:status 200
                                       :body interval}))}}]])
 
@@ -200,26 +189,38 @@
        (query! ajanottaja.db/datasource))
 
   ;; Test sql generation for workday upserts
-  (hsql/format (workday-upsert {:work-date (t/today)
+  (hsql/format (target-upsert {:work-date (t/today)
                                 :work-interval (t/new-duration 7 :hours)
                                 :account-id  #uuid "5d90856c-5a48-46ae-8f6e-a06295ea0dfb"}))
 
   ;; Test sql generation for interval creation
-  (hsql/format (create-work-interval {:work-date (t/today)
-                                      :work-interval (t/new-duration 7 :hours)
-                                      :account-id #uuid "5d90856c-5a48-46ae-8f6e-a06295ea0dfb"
-                                      :interval-start (t/now)}))
+  (hsql/format (create-interval {:date (t/today)
+                                 :work-interval (t/new-duration 7 :hours)
+                                 :account #uuid "5d90856c-5a48-46ae-8f6e-a06295ea0dfb"
+                                 :interval (t/now)}))
 
 
-  (insert-work-interval! ajanottaja.db/datasource
-                         {:work-date (t/today)
-                          :work-duration (t/new-duration 7 :hours)
-                          :account-id #uuid "5d90856c-5a48-46ae-8f6e-a06295ea0dfb"
-                          :interval (->Interval (t/now) nil)})
+
+  (create-interval! ajanottaja.db/datasource
+   {:date (t/today)
+    :duration (t/new-duration 7 :hours)
+    :account #uuid "c3ce6f30-4b13-4252-8799-80783f3d3546"
+    :interval ^{:type :interval}{:beginning (t/now)}})
   
-  (stop-work-interval! ajanottaja.db/datasource
-                       {:account-id #uuid "5d90856c-5a48-46ae-8f6e-a06295ea0dfb"})
+  (stop-interval! ajanottaja.db/datasource
+                       {:account #uuid "c3ce6f30-4b13-4252-8799-80783f3d3546"})
   
+
+  (active-interval! ajanottaja.db/datasource
+                    {:account #uuid "c3ce6f30-4b13-4252-8799-80783f3d3546"})
+  
+
+  (intervals! ajanottaja.db/datasource {:account #uuid "c3ce6f30-4b13-4252-8799-80783f3d3546"
+                                         :date (t/today)})
+
+  (hsql/format (intervals #_ajanottaja.db/datasource {:account #uuid "c3ce6f30-4b13-4252-8799-80783f3d3546"
+                                                      :date (t/today)}))
+
   (slurp (muuntaja.core/encode
         ajanottaja.server/muuntaja-instance
         "application/json"
@@ -244,11 +245,4 @@
                         :updated-at #time/instant "2021-05-05T17:05:27.356747Z"})
   
 
-  (require '[malli.util :as mu])
-
-  (malli.core)
-
-  
-
-  #time/date "2021-05-04"
 )

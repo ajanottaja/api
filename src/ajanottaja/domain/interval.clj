@@ -130,7 +130,7 @@
            :handler (fn [req]
                       (log/info "Fetch any active interval")
                       (let [interval (active-interval! (-> req :state :datasource)
-                                                       {:account-id (-> req :claims :sub)})]
+                                                       {:account (-> req :claims :sub)})]
                         (cond
                           (nil? interval) {:status 404
                                            :body {:status 404

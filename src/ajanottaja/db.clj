@@ -1,6 +1,7 @@
 (ns ajanottaja.db
   (:require [ajanottaja.db.range]
             [ajanottaja.db.interval]
+            [ajanottaja.db.date]
             [ajanottaja.db.pg-object :as pg-object]
             [ajanottaja.db.errors :as db-errors]
             [ajanottaja.config :as config]
@@ -25,8 +26,6 @@
 
 
 ;; Call this so all dates are read as local dates
-(read-as-instant)
-
 (hsql/format-expr (tick.core/today))
 
 (defn- contains-formatter [_f args]

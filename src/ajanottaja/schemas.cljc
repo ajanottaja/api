@@ -30,7 +30,6 @@
                                                         :encode/json str
                                                         :json-schema/type "string"
                                                         :json-schema/format "date-time"}})
-
           :date (m/-simple-schema {:type :date
                                    :pred t/date?
                                    :type-properties {:error/message "should be a valid date"
@@ -47,8 +46,7 @@
                                                          :encode/string t/millis
                                                          :decode/json #(t/new-duration % :millis)
                                                          :encode/json t/millis
-                                                         :json-schema/type "integer"
-                                                         :json-schema/format "int64"}})
+                                                         :json-schema/type "integer"}})
 
 
           :email (m/-simple-schema {:type :email

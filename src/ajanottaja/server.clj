@@ -26,6 +26,7 @@
             [ajanottaja.db :as db]
             [ajanottaja.domain.auth0 :as auth0]
             [ajanottaja.domain.interval :as interval]
+            [ajanottaja.domain.target :as target]
             [ajanottaja.server.interceptors :as interceptors]))
 
 (def muuntaja-instance
@@ -63,7 +64,8 @@
             :handler (constantly {:status 200
                                   :body {:message "Ok"}})}}]]
    (auth0/routes config)
-   (interval/routes config)])
+   (interval/routes config)
+   (target/routes config)])
 
 
 

@@ -39,7 +39,6 @@
 ;; Convert interval edn map to pg parameter
 (defmethod map->pgobject :interval
   [^PersistentArrayMap v]
-  (tap> v)
   (str "["
        (if (= (:beginning v) Instant/MIN) "" (:beginning v))
        ","
@@ -48,7 +47,6 @@
 ;; Read PG tstzrange and tsrange
 (defmethod pgobject->clj :tstzrange
   [^org.postgresql.util.PGobject x]
-  (tap> x)
   (some->> x
            .getValue
            (pgobject->interval (comp t/instant t/zoned-date-time))))

@@ -4,7 +4,7 @@
             [ajanottaja.schemas :as schemas]))
 
 (def target
-  "Workday schema"
+  "Target schema"
   (mu/merge schemas/pg-columns
             [:map
              [:date :date]
@@ -24,14 +24,25 @@
            '[malli.transform :as mt]
            '[malli.util :as mu])
   
-  ;; Valid workday
-  (me/humanize target
-               {:id #uuid "6ed4efaa-61bc-4a08-b746-a2919c53ba1b"
-                :work-date #time/date "2021-04-25"
-                :account-id #uuid "5d90856c-5a48-46ae-8f6e-a06295ea0dfb"
-                :work-duration #time/duration "PT7H30M"
-                :created-at #time/date-time "2021-05-02T12:16:22.381001"
-                :updated-at #time/date-time "2021-05-02T12:16:22.381001"})
+  ;; Valid target
+  (me/humanize (m/explain target
+                          {:id #uuid "e178f3a9-c2ef-4af7-9183-fad6920dce5b"
+                           :date #time/date "2021-08-08"
+                           :account #uuid "c3ce6f30-4b13-4252-8799-80783f3d3546"
+                           :duration #time/duration "PT7H"
+                           :created-at #time/instant "2021-08-08T10:30:30.972687Z"
+                           :updated-at #time/instant "2021-08-08T10:30:30.972687Z"}))
+  (tick.alpha.api/new-duration #time/duration "PT7H" :millis)
+
+  (as-> {:id #uuid "e178f3a9-c2ef-4af7-9183-fad6920dce5b"
+       :date #time/date "2021-08-08"
+       :account #uuid "c3ce6f30-4b13-4252-8799-80783f3d3546"
+       :duration #time/duration "PT7H"
+       :created-at #time/instant "2021-08-08T10:30:30.972687Z"
+       :updated-at #time/instant "2021-08-08T10:30:30.972687Z"} t
+      (malli.core/encode target t schemas/strict-json-transformer)
+    (muuntaja.core/encode "application/json" t)
+    (slurp t))
   
   (me/humanize interval
                {:id #uuid "6ed4efaa-61bc-4a08-b746-a2919c53ba1b"

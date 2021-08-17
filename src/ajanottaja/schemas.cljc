@@ -4,7 +4,8 @@
             [malli.registry :as mr]
             [malli.transform :as mt]
             [malli.util :as mu]
-            [tick.alpha.api :as t]))
+            [tick.alpha.api :as t])
+  (:import [java.time Duration]))
 
 ;; Mostly used for testing
 (def strict-json-transformer
@@ -42,11 +43,11 @@
           :duration (m/-simple-schema {:type :duration
                                        :pred t/duration?
                                        :type-properties {:error/message "should be a valid duration"
-                                                         :decode/string #(t/new-duration % :millis)
-                                                         :encode/string t/millis
-                                                         :decode/json #(t/new-duration % :millis)
-                                                         :encode/json t/millis
-                                                         :json-schema/type "integer"}})
+                                                         :decode/string #(Duration/parse %)
+                                                         :encode/string str
+                                                         :decode/json #(Duration/parse %)
+                                                         :encode/json str
+                                                         :json-schema/type "string"}})
 
 
           :email (m/-simple-schema {:type :email
@@ -112,6 +113,17 @@
   (t/date-time)
 
   (t/new-duration 3600000 :millis)
+  (t/duration? (Duration/parse "PT1H"))
+
+  (import [java.time Duration])
+  (Duration/parse (str (t/new-duration 3600000 :millis)))
+
+  (t/new-duration (str (t/new-duration 3600000 :millis)))
+  (t/duration "PT1H")
+
+  (str (t/new-duration 3600000 :millis))
+
+  (str (t/new-duration 3600000 :millis))
 
   (+ 10 10)
 
@@ -121,6 +133,7 @@
   (t/instant? #time/instant "2021-02-07T18:31:06.546874Z")
   (t/instant "2021-05-02T18:21:34.280Z")
 
+  
   (t/date-time)
 
   ;; Valid pg-columns

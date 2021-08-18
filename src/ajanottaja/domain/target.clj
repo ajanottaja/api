@@ -31,6 +31,14 @@
            [:= :account account]]
    :order-by [:date]})
 
+(defn target-on-date
+  [{:keys [account date] :or {date (t/new-date)}}]
+  {:select [:*]
+   :from :targets
+   :where [:and
+           [:= :account account]
+           [:= :date date]]})
+
 (defn targets!
   "Given datasource and map with account (id) returns list of targets for account."
   [ds m]
@@ -38,6 +46,16 @@
   (try (->> (targets m)
             hsql/format
             (query! ds))
+       (catch Exception e (tap> e) e)))
+
+(defn active-target!
+  "Given datasource and map with account (id) returns todays target"
+  [ds m]
+  (log/info m "Fetch todays target for account")
+  (try (->> (target-on-date m)
+            hsql/format
+            (query! ds)
+            first)
        (catch Exception e (tap> e) e)))
 
 (defn upsert-target!
@@ -83,7 +101,21 @@
                        (f/if-let-ok? [target (upsert-target! (-> req :state :datasource)
                                                              (-> req :parameters :body (merge {:account (-> req :claims :sub)})))]
                                      {:status 200
-                                      :body target}))}}]])
+                                      :body target}))}}]
+   ["/active"
+    {:get {:name :active-target
+           :description "Returns target of current date if it exists"
+           :parameters {}
+           :responses {200 {:body schemas/target}}
+           :handler (fn [req]
+                      (log/info "Fetch targets")
+                      (f/if-let-ok? [target (active-target! (-> req :state :datasource)
+                                                            {:account (-> req :claims :sub)})]
+                                    (if-not (nil? target)
+                                      {:status 200
+                                       :body target}
+                                      {:status 404
+                                       :body {:message "Not Found"}})))}}]])
 
 
 ;; Rich comments

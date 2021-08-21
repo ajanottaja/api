@@ -47,7 +47,8 @@
                                                          :encode/string str
                                                          :decode/json #(Duration/parse %)
                                                          :encode/json str
-                                                         :json-schema/type "string"}})
+                                                         :json-schema/type "string"
+                                                         :examples [(t/new-duration 90 :minutes)]}})
 
 
           :email (m/-simple-schema {:type :email

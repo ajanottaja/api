@@ -26,6 +26,7 @@
             [ajanottaja.db :as db]
             [ajanottaja.domain.auth0 :as auth0]
             [ajanottaja.domain.interval :as interval]
+            [ajanottaja.domain.statistics :as statistics]
             [ajanottaja.domain.target :as target]
             [ajanottaja.server.interceptors :as interceptors]))
 
@@ -65,6 +66,7 @@
                                   :body {:message "Ok"}})}}]]
    (auth0/routes config)
    (interval/routes config)
+   (statistics/routes config)
    (target/routes config)])
 
 

@@ -28,4 +28,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/ajanottaja/ajanottaja:latest
+          tags: ghcr.io/ajanottaja/api:latest

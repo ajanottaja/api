@@ -13,6 +13,9 @@
   #(keyword (when % (.getType ^org.postgresql.util.PGobject %))))
 
 
+(defmethod pgobject->clj nil [_] nil)
+(defmethod pgobject->clj :default [v] (str v))
+
 (extend-protocol rs/ReadableColumn
   ;; Convert Postgres objects to some clojure value.
   org.postgresql.util.PGobject

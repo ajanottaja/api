@@ -2,6 +2,7 @@
   (:require [ajanottaja.db.range]
             [ajanottaja.db.interval]
             [ajanottaja.db.date]
+            [ajanottaja.db.array]
             [ajanottaja.db.pg-object :as pg-object]
             [ajanottaja.db.errors :as db-errors]
             [ajanottaja.config :as config]

@@ -25,6 +25,7 @@
             [ajanottaja.config :as config]
             [ajanottaja.db :as db]
             [ajanottaja.domain.auth0 :as auth0]
+            [ajanottaja.domain.calendar :as calendar]
             [ajanottaja.domain.interval :as interval]
             [ajanottaja.domain.statistics :as statistics]
             [ajanottaja.domain.target :as target]
@@ -65,6 +66,7 @@
             :handler (constantly {:status 200
                                   :body {:message "Ok"}})}}]]
    (auth0/routes config)
+   (calendar/routes config)
    (interval/routes config)
    (statistics/routes config)
    (target/routes config)])

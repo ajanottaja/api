@@ -44,9 +44,9 @@
                                        :pred t/duration?
                                        :type-properties {:error/message "should be a valid duration"
                                                          :decode/string #(Duration/parse %)
-                                                         :encode/string str
+                                                         :encode/string #(when % (str %))
                                                          :decode/json #(Duration/parse %)
-                                                         :encode/json str
+                                                         :encode/json #(when % (str %))
                                                          :json-schema/type "string"
                                                          :examples [(t/new-duration 90 :minutes)]}})
 

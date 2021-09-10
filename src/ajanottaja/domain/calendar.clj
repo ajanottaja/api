@@ -27,26 +27,45 @@
                              [:raw "'1 day'::interval"]]
                             [:raw "interval '1 day'"]]
                            [[:raw "t(date)"]]]]}]
-          [:targs {:select [:targets.date :targets.duration]
+          [:targs {:select [:*]
                    :from [:targets]
                    :where [:= :targets.account account]}]
-          [:inters {:select [:interval]
+          [:inters {:select [:*]
                     :from [:intervals]
                     :where [:= :intervals.account account]}]]
    :select [[[:cast :dates.date :date]]
-            [:targs.duration :target]
-            [[:array_agg :inters.interval] :intervals]]
+            [:targs.id :target-id]
+            [:targs.duration :target-duration]
+            [:inters.id :interval-id]
+            [:inters.interval :interval]]
    :from [:dates]
    :left-join [:targs [:= :dates.date :targs.date]
                :inters [:= :dates.date [:date [:lower :inters.interval]]]]
-   :group-by [:dates.date :targs.duration]
+   #_#_:group-by [:dates.date]
    :order-by [:dates.date]})
+
+
+(defn calendar-date
+  "Group up rows of a single date into a date map with
+   a target and list of intervals."
+  [vals]
+  (-> (first vals)
+      (select-keys [:date])
+      (assoc :target (when (:target-id (first vals))
+                       {:id (:target-id (first vals))
+                        :duration (:target-duration (first vals))}))
+      (assoc :intervals (->> vals
+                             (filter :interval-id)
+                             (map (fn [v] {:id (:interval-id v)
+                                           :interval (:interval v)}))))))
 
 (defn calendar-summary!
   [ds m]
   (->> (calendar-summary m)
        hsql/format
-       (query! ds)))
+       (query! ds)
+       (partition-by :date)
+       (map calendar-date)))
 
 
 
@@ -58,14 +77,14 @@
       (hsql/format {:pretty true})
       first
       println)
-  
+
   (calendar-summary!
    ajanottaja.db/datasource
    {:account  #uuid "c3ce6f30-4b13-4252-8799-80783f3d3546"
-    :date (t/new-date 2021 8 1)})
+    :date (t/new-date 2021 9 1)})
   
-  {:vlaaad.reveal/command '(clear-output)})
-
+  {:vlaaad.reveal/command '(clear-output)}
+)
 
 (defn routes
   "Defines all the routes for calendar functionality"
@@ -85,8 +104,12 @@
            :responses {200 {:body [:sequential
                                    [:map
                                     [:date :date]
-                                    [:target [:maybe :duration]]
-                                    [:intervals [:sequential schemas/interval?]]]]}}
+                                    [:target [:maybe [:map
+                                                      [:id :uuid]
+                                                      [:duration :duration]]]]
+                                    [:intervals [:sequential [:map
+                                                              [:id :uuid]
+                                                              [:interval schemas/interval?]]]]]]}}
            :handler (fn [req]
                       (log/info "Fetch intervals")
                       (f/if-let-ok? [dates (calendar-summary! (-> req :state :datasource)

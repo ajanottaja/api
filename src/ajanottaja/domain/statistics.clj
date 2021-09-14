@@ -3,8 +3,8 @@
             [honey.sql :as hsql]
             [honey.sql.helpers :as hsqlh]
             [malli.util :as mu]
-            [tick.alpha.api :as t]
-            [ajanottaja.db :refer [try-insert! query!]]
+            [tick.core :as t]
+            [ajanottaja.db :refer [query-many!]]
             [ajanottaja.server.interceptors :as interceptors]
             [ajanottaja.failjure :as f]
             [ajanottaja.schemas.responses :as res-schemas]
@@ -61,16 +61,7 @@
                (tracked-diff (merge args {:unit "week" :date-fn date->week :table :target-week}))
                (tracked-diff (merge args {:unit "month" :date-fn date->month :table :target-month}))]})
 
-
-
-(defn summarised-stats!
-  "Given a derefable datasource and a map of date and account id
-   returns stats for period of day, week, and month for the given date.
-   Returns the tracked time intervals diffed with the sum of target durations."
-  [ds m]
-  (->> (summarised-stats m)
-       hsql/format
-       (query! ds)))
+(def summarised-stats! (partial query-many! summarised-stats))
 
 
 (defn routes

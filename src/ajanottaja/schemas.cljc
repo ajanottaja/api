@@ -4,7 +4,7 @@
             [malli.registry :as mr]
             [malli.transform :as mt]
             [malli.util :as mu]
-            [tick.alpha.api :as t])
+            [tick.core :as t])
   (:import [java.time Duration]))
 
 ;; Mostly used for testing
@@ -48,7 +48,8 @@
                                                          :decode/json #(Duration/parse %)
                                                          :encode/json #(when % (str %))
                                                          :json-schema/type "string"
-                                                         :examples [(t/new-duration 90 :minutes)]}})
+                                                         :json-schema/format "duration"
+                                                         :swagger/example "PT6H"}})
 
 
           :email (m/-simple-schema {:type :email
@@ -80,7 +81,7 @@
    On encode just uses the default encoding strategy for a map with
    two instants."
   [:map
-   {:decode/json {:enter '#(with-meta % {:type :interval})}}
+   {:decode/json {:enter '#(with-meta % {:ajanottaja/type :interval})}}
    [:beginning :instant]
    [:end [:maybe :instant]]])
 

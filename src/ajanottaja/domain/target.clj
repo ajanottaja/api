@@ -3,14 +3,15 @@
             [honey.sql :as hsql]
             [honey.sql.helpers :as hsqlh]
             [malli.util :as mu]
-            [tick.alpha.api :as t]
-            [ajanottaja.db :refer [try-insert! query!]]
+            [tick.core :as t]
+            [ajanottaja.db :refer [try-insert! query-one! query-many!]]
+            [ajanottaja.helpers :as h]
             [ajanottaja.server.interceptors :as interceptors]
             [ajanottaja.failjure :as f]
             [ajanottaja.schemas.responses :as res-schemas]
             [ajanottaja.schemas.time :as schemas]))
 
-(defn upsert-target
+(defn create-target
   "Takes a map with date, interval, and account (id) and
    returns a honey-sql map for upserting a target row, and return
    the id and account id value for the row."
@@ -19,9 +20,40 @@
    :values [{:date date
              :duration duration
              :account account}]
-   :on-conflict [:date :account]
-   :do-update-set [:duration]
    :returning [:*]})
+
+
+(def create-target! (partial query-one! create-target))
+
+
+(defn update-target
+  "Given account (id), target id, and a new duration returns sql query for updating
+   the target record."
+  [{:keys [account date duration id] :as m}]
+  {:update :targets
+   :set (-> m
+            (select-keys [:date :duration :id])
+            h/filter-nils)
+   :where [:and
+           [:= :account account]
+           [:= :id id]]
+   :returning [:*]})
+
+(def update-target! (partial query-one! update-target))
+
+
+(defn delete-target
+  "Given account (id), target id, and a new duration returns sql query for updating
+   the target record."
+  [{:keys [account id]}]
+  {:delete-from :targets
+   :where [:and
+           [:= :id id]
+           [:= :account account]]
+   :returning [:*]})
+
+(def delete-target! (partial query-one! delete-target))
+
 
 (defn targets
   [{:keys [account]}]
@@ -31,6 +63,8 @@
            [:= :account account]]
    :order-by [:date]})
 
+(def targets! (partial query-many! targets))
+
 (defn target-on-date
   [{:keys [account date] :or {date (t/new-date)}}]
   {:select [:*]
@@ -39,70 +73,74 @@
            [:= :account account]
            [:= :date date]]})
 
-(defn targets!
-  "Given datasource and map with account (id) returns list of targets for account."
-  [ds m]
-  (log/info m "Fetch targets for account")
-  (try (->> (targets m)
-            hsql/format
-            (query! ds))
-       (catch Exception e (tap> e) e)))
-
-(defn active-target!
-  "Given datasource and map with account (id) returns todays target"
-  [ds m]
-  (log/info m "Fetch todays target for account")
-  (try (->> (target-on-date m)
-            hsql/format
-            (query! ds)
-            first)
-       (catch Exception e (tap> e) e)))
-
-(defn upsert-target!
-  "Given datasource wrapped in atom and map of workday and work interval values
-   returns the started interval."
-  [ds m]
-  (log/info m "Insert work interval!")
-  (try (->> (upsert-target m)
-            hsql/format
-            (query! ds)
-            first)
-       (catch Exception e (tap> e) e)))
+(def active-target! (partial query-one! target-on-date))
 
 
 (defn routes
   "Defines all the routes for timing related stuff"
   [server-config]
-  ["/targets"
+  [""
    {:tags [:targets]
     :description "Endpoints for creating, updating, listing, and deleting targets."
     :interceptors [(interceptors/validate-bearer-token (:jwks-url server-config))
                    (interceptors/transform-claims)]
     :swagger {:security [{:bearer []}]}}
-   [""
-    {:get {:name :targets
-           :description "Returns list of targets"
-           :parameters {}
-           :responses {200 {:body [:sequential schemas/target]}}
-           :handler (fn [req]
-                      (log/info "Fetch targets")
-                      (f/if-let-ok? [targets (targets! (-> req :state :datasource)
-                                                       {:account (-> req :claims :sub)})]
-                                    (do (tap> targets)
-                                        {:status 200
-                                         :body targets})))}
-     :post {:name :upsert-target
-            :description "Upserts a target"
-            :parameters {:body (mu/select-keys schemas/target
-                                               [:date :duration])}
-            :responses {200 {:body schemas/target}}
+   ["/targets"
+    [""
+     {:get {:name :targets
+            :description "Returns list of targets"
+            :parameters {}
+            :responses {200 {:body [:sequential schemas/target]}}
             :handler (fn [req]
-                       (log/info "Upsert target")
-                       (f/if-let-ok? [target (upsert-target! (-> req :state :datasource)
-                                                             (-> req :parameters :body (merge {:account (-> req :claims :sub)})))]
+                       (log/info "Fetch targets")
+                       (f/if-let-ok? [targets (targets! (-> req :state :datasource)
+                                                        {:account (-> req :claims :sub)})]
                                      {:status 200
-                                      :body target}))}}]
-   ["/active"
+                                      :body targets}))}
+      :post {:name :create-target
+             :description "Creates a target"
+             :parameters {:body (mu/select-keys schemas/target [:duration :date])}
+             :responses {200 {:body schemas/target}}
+             :handler (fn [req]
+                        (log/info "Upsert target")
+                        (f/if-let-ok? [target (create-target! (-> req :state :datasource)
+                                                              (-> req :parameters :body (merge {:account (-> req :claims :sub)})))]
+                                      {:status 200
+                                       :body target}))}}]
+    ["/:id" {:patch {:name :update-target
+                     :description "Update target's date and/or duration.
+                                            Omitted value is not set."
+                     :parameters {:path (mu/select-keys schemas/target [:id])
+                                  :body (-> schemas/target
+                                            (mu/select-keys [:date :duration])
+                                            (mu/optional-keys [:date :duration]))}
+                     :responses {200 {:body schemas/target}}
+                     :handler (fn [req]
+                                (log/info "Upsert target")
+                                (f/if-let-ok? [target (update-target! (-> req :state :datasource)
+                                                                      (-> (-> req :parameters :body)
+                                                                          (merge {:account (-> req :claims :sub)})
+                                                                          (merge (-> req :parameters :path))))]
+                                              (do (tap> target)
+                                                  {:status 200
+                                                   :body target})))}
+             :delete {:name :delete-target
+                     :description "Delete target identified by id if it matches account"
+                     :parameters {:path (mu/select-keys schemas/target [:id])}
+                     :responses {200 {:body schemas/target}
+                                 404 {:body res-schemas/not-found-schema}}
+                     :handler (fn [req]
+                                (log/info "Upsert target")
+                                (f/if-let-ok? [target (delete-target! (-> req :state :datasource)
+                                                                      (-> (-> req :parameters :body)
+                                                                          (merge {:account (-> req :claims :sub)})
+                                                                          (merge (-> req :parameters :path))))]
+                                              (if (nil? target)
+                                                {:status 404
+                                                 :body {:message "Not Found"}}
+                                                {:status 200
+                                                 :body target})))}}]]
+   ["/targets-active"
     {:get {:name :active-target
            :description "Returns target of current date if it exists"
            :parameters {}

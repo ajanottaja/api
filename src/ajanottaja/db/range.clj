@@ -7,7 +7,7 @@
             [cambium.core :as log]
             [clojure.string :as string]
             [next.jdbc.prepare :as p]
-            [tick.alpha.api :as t])
+            [tick.core :as t])
   (:import [clojure.lang PersistentArrayMap]
            [java.sql PreparedStatement]
            [java.time Instant]
@@ -33,7 +33,7 @@
     (-> (zipmap [:beginning :end]
                 (map #(some-> % (string/replace #" " "T") f)
                      [start end]))
-        (with-meta {:type :interval}))))
+        (with-meta {:ajanottaja/type :interval}))))
 
 
 ;; Convert interval edn map to pg parameter

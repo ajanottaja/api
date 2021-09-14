@@ -3,7 +3,7 @@
   (:require [next.jdbc
              [result-set :as rs]
              [prepare :as p]]
-            [tick.alpha.api :as t])
+            [tick.core :as t])
   (:import [java.sql PreparedStatement]
            [org.postgresql.util PGInterval]))
 

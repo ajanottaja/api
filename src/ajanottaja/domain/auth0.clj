@@ -2,7 +2,7 @@
   (:require [cambium.core :as log]
             [malli.util :as mu]
             [honey.sql :as hsql]
-            [ajanottaja.db :refer [try-insert! query!]]
+            [ajanottaja.db :refer [try-insert! query-one!]]
             [ajanottaja.schemas.account :as schemas]
             [ajanottaja.server.interceptors :as interceptors]))
 
@@ -25,25 +25,14 @@
                            {:status 400 :body (:error account)})
       :else {:status 201 :body account})))
 
-(comment
-  (hsql/format {:select [:*]
-                :from   [:accounts]
-                :where [:= :auth-zero-id "foo"]}))
 
+(defn get-account-by-auth-zero-id
+  [{:keys [auth-zero-id]}]
+  {:select [:id]
+   :from   [:accounts]
+   :where [:= :auth-zero-id auth-zero-id]})
 
-(defn get-account-by-auth-zero-id!
-  [datasource auth-zero-id]
-  (log/info {:auth-zero-id auth-zero-id} "Get account by auth0 id")
-  (let [account (->> {:select [:id]
-                      :from   [:accounts]
-                      :where [:= :auth-zero-id auth-zero-id]}
-                     hsql/format
-                     (query! datasource)
-                     first)]
-    (log/info account "Account is")
-    (if account
-      {:status 200 :body account}
-      {:status 404 :body {:message "Not found"}})))
+(def get-account-by-auth-zero-id! (partial query-one! get-account-by-auth-zero-id))
 
 
 (defn routes
@@ -68,13 +57,17 @@
            :parameters {:path [:map [:auth-zero-id string?]]}
            :responses {200 {:body (mu/select-keys schemas/account-model [:id])}}
            :handler (fn [req]
-                      (get-account-by-auth-zero-id! (-> req :state :datasource)
-                                                    (-> req :parameters :path :auth-zero-id)))}}]])
+                      (let [account (get-account-by-auth-zero-id! (-> req :state :datasource)
+                                                                  (-> req :parameters :path))]
+                        (if account
+                          {:status 200 :body account}
+                          {:status 404 :body {:message "Not found"}})))}}]])
 
 
 
 ;; Rich comments
 (comment
+  
   (->> {:select [:*]
         :from [:accounts]
         :where [:= :email "post+ajanottaja@snorre.io"]}

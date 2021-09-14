@@ -4,7 +4,7 @@
             [next.jdbc
              [result-set :as rs]
              [prepare :as p]]
-            [tick.alpha.api :as t])
+            [tick.core :as t])
   (:import [java.sql PreparedStatement Array]
            [org.postgresql.jdbc PgArray]))
 

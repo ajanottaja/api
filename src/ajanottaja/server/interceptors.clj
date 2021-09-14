@@ -4,7 +4,8 @@
             [clojure.string :as string]
             [clojure.walk :as walk]
             [reitit.http.interceptors.exception :as exception]
-            [tick.alpha.api :as t]
+            [tick.core :as t]
+            [tick.alpha.interval :as ti]
             
             [ajanottaja.failjure :as f]
             [ajanottaja.jwt :as jwt]
@@ -62,7 +63,7 @@
                        "Request")
             (assoc ctx ::started (t/instant)))
    :leave (fn [ctx]
-            (let [resp-time (-> (t/new-interval (::started ctx) (t/instant))
+            (let [resp-time (-> (ti/new-interval (::started ctx) (t/instant))
                                 t/duration
                                 t/micros)]
               (log/info 

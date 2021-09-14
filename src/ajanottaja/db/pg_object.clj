@@ -2,7 +2,7 @@
   (:require [next.jdbc.prepare :as p]
             [next.jdbc.result-set :as rs])
   (:import [java.sql PreparedStatement]
-           [clojure.lang PersistentArrayMap]
+           [clojure.lang APersistentMap]
            [org.postgresql.util PGobject]))
 
 (defmulti pgobject->clj
@@ -27,11 +27,11 @@
 (defmulti map->pgobject
   "Convert clj edn map values to postgres value. Dispatches on the metadata
    of the clojure object to figure out which method to use."
-  #(-> % meta :type))
+  #(-> % meta :ajanottaja/type))
 
 (extend-protocol p/SettableParameter
   ;; Convert Clojure edn maps to some postgres value
-  PersistentArrayMap
+  APersistentMap
   (set-parameter [^PersistentArrayMap v ^PreparedStatement ps ^long i]
     (let [meta      (.getParameterMetaData ps)
           type-name (.getParameterTypeName meta i)]

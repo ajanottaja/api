@@ -56,8 +56,9 @@
                                    :stacktrace (.getStackTrace e)}))))
 
 
-(defn query!
-  "Run a query with default parameters"
+(defn execute-query!
+  "Execute a formatted query and arguments vector against datasource
+   and returns results. Catches any SQL exceptions and wraps with failjure."
   [datasource query]
   (log/debug {:query query} "Run database query")
   (try (sql/query @datasource query jdbc-opts)
@@ -65,6 +66,20 @@
                                      (db-errors/->error e)))
        (catch Exception e (tap> e) (f/fail "Failed to run sql query"
                                   db-errors/default-error))))
+
+(defn query-many!
+  "Formats arguments given fmt-fn and runs resulting
+   query against datasource returning all results."
+  [fmt-fn datasource fmt-args]
+  (->> (fmt-fn fmt-args)
+       hsql/format
+       (execute-query! datasource)))
+
+(defn query-one!
+  "Formats arguments given fmt-fn and runs resulting
+   query against datasource returning first result."
+  [fmt-fn datasource fmt-args]
+  (first (query-many! fmt-fn datasource fmt-args)))
 
   
   (comment
@@ -112,7 +127,7 @@
 
   (insert! @datasource :work_interval {:workdate "foo"})
 
-  (require '[tick.alpha.api :as t])
+  (require '[tick.core :as t])
 
   (type (t/new-period 100 :days))
 

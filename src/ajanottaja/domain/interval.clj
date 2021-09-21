@@ -3,7 +3,7 @@
             [honey.sql :as hsql]
             [malli.util :as mu]
             [tick.core :as t]
-            [ajanottaja.db :refer [try-insert! query-one!]]
+            [ajanottaja.db :refer [try-insert! query-one! query-many!]]
             [ajanottaja.helpers :as h]
             [ajanottaja.server.interceptors :as interceptors]
             [ajanottaja.failjure :as f]
@@ -69,7 +69,7 @@
            [:= :account account]
            [:= [:upper :interval] nil]]})
 
-(def active-interval! (partial query-one! active-interval!))
+(def active-interval! (partial query-one! active-interval))
 
 
 (defn intervals
@@ -80,7 +80,7 @@
            [:= :account account]]
    :order-by [:interval]})
 
-(def intervals! (partial query-one! intervals))
+(def intervals! (partial query-many! intervals))
 
 
 (defn routes
@@ -159,8 +159,7 @@
                            :else {:status 200
                                   :body interval})))}}]
     ["/start"
-     {:conflicting true
-      :post {:name :create-interval
+     {:post {:name :create-interval
              :description "Upsert workday with workday duration and adds new work interval for the provided workday."
              :parameters {}
              :responses {200 {:body schemas/interval}}
@@ -173,8 +172,7 @@
                                       {:status 200
                                        :body interval}))}}]
     ["/stop"
-     {:conflicting true
-      :post {:name :stop-interval
+     {:post {:name :stop-interval
              :description "Stop any active work interval, returns latest interval"
              :parameters {}
              :responses {200 {:body schemas/interval}}

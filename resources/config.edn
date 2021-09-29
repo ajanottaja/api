@@ -9,7 +9,7 @@
  :server {:url #or [#env AJANOTTAJA_SERVER_URL "http://localhost:3000"]
           :ip #or [#env AJANOTTAJA_SERVER_IP "127.0.0.1"]
           :port #or [#env AJANOTTAJA_SERVER_PORT 3000]
-          :cors-config {:allowed-request-methods [:post :get]
+          :cors-config {:allowed-request-methods [:post :get :put :patch :delete]
                         :allowed-request-headers ["Authorization" "Content-Type"]
                         :origins ["http://localhost:3000"
                                   "http://localhost:3001"

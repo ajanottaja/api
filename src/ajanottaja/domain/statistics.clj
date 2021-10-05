@@ -56,10 +56,12 @@
   [args]
   {:with [[:target-day (target-for (assoc args :date-fn date->day))]
           [:target-week (target-for (assoc args :date-fn date->week))]
-          [:target-month (target-for (assoc args :date-fn date->month))]]
+          [:target-month (target-for (assoc args :date-fn date->month))]
+          [:target-all (target-for (assoc args :date-fn (constantly "")))]]
    :union-all [(tracked-diff (merge args {:unit "day" :date-fn date->day :table :target-day}))
                (tracked-diff (merge args {:unit "week" :date-fn date->week :table :target-week}))
-               (tracked-diff (merge args {:unit "month" :date-fn date->month :table :target-month}))]})
+               (tracked-diff (merge args {:unit "month" :date-fn date->month :table :target-month}))
+               (tracked-diff (merge args {:unit "all" :date-fn (constantly "") :table :target-all}))]})
 
 (def summarised-stats! (partial query-many! summarised-stats))
 
@@ -77,7 +79,7 @@
            :description "Returns day, week, and month summaries for tracked intervals vs targets"
            :parameters {}
            :responses {200 {:body [:sequential [:map
-                                                [:unit [:enum "day" "week" "month"]]
+                                                [:unit [:enum "day" "week" "month" "all"]]
                                                 [:target :duration]
                                                 [:tracked :duration]
                                                 [:diff :duration]]]}}

@@ -1,0 +1,22 @@
+name: Clojure Dependency Checking
+
+on:
+  push:
+    branches:
+      - 'main'
+  schedule:
+    - cron: '0 0 * * 0' # Run weekly on sundays
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Latest Commit
+      uses: actions/checkout@v1
+
+    - name: Check deps
+      uses: nnichols/clojure-dependency-update-action@v3
+      with:
+        github-token: ${{ secrets.github_token }}

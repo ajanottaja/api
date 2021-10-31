@@ -32,6 +32,7 @@
    :select [[[:cast :dates.date :date]]
             [:targs.id :target-id]
             [:targs.duration :target-duration]
+            [:targs.date :target-date]
             [:inters.id :interval-id]
             [:inters.interval :interval]]
    :from [:dates]
@@ -48,7 +49,8 @@
       (select-keys [:date])
       (assoc :target (when (:target-id (first vals))
                        {:id (:target-id (first vals))
-                        :duration (:target-duration (first vals))}))
+                        :duration (:target-duration (first vals))
+                        :date (:target-date (first vals))}))
       (assoc :intervals (->> vals
                              (filter :interval-id)
                              (map (fn [v] {:id (:interval-id v)
@@ -81,7 +83,8 @@
                                     [:date :date]
                                     [:target [:maybe [:map
                                                       [:id :uuid]
-                                                      [:duration :duration]]]]
+                                                      [:duration :duration]
+                                                      [:date :date]]]]
                                     [:intervals [:sequential [:map
                                                               [:id :uuid]
                                                               [:interval schemas/interval?]]]]]]}}

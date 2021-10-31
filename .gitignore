@@ -2,6 +2,7 @@
 .lsp
 .cpcache
 .clj-kondo/.cache
+.clj-kondo/marick
 .vscode
 dev/*
 !dev/docker-compose.yml

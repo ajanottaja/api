@@ -104,7 +104,19 @@
                        (f/if-let-ok? [intervals (intervals! (-> req :state :datasource)
                                                             {:account (-> req :claims :sub)})]
                                      {:status 200
-                                      :body intervals}))}}]
+                                      :body intervals}))}
+      :post {:name :create-interval
+             :description "Create a new interval"
+             :parameters {:body (-> schemas/interval
+                                    (mu/select-keys [:interval]))}
+             :responses {200 {:body schemas/interval}}
+             :handler (fn [req]
+                        (log/info "Create interval")
+                        (f/if-let-ok? [interval (create-interval! (-> req :state :datasource)
+                                                                  (merge (-> req :parameters :body)
+                                                                         {:account (-> req :claims :sub)}))]
+                                      {:status 200
+                                       :body interval}))}}]
     ["/:id"
      {:patch {:name :update-target
               :description "Update target's date and/or duration.

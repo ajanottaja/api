@@ -83,7 +83,7 @@
   [:map
    {:decode/json {:enter '#(with-meta % {:ajanottaja/type :interval})}}
    [:beginning :instant]
-   [:end [:maybe :instant]]])
+   [:end {:optional true} [:maybe :instant]]])
 
 (comment
   (require '[malli.error :as me]

@@ -6,7 +6,14 @@
       <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg { %mdc }%n</pattern>
     </encoder>
   </appender>
-  <root level="debug">
+  <root level="error">
     <appender-ref ref="STDOUT" />
   </root>
+  <turboFilter class="cambium.logback.core.StrategyTurboFilter">
+    <name>mdcStrategy</name>
+  </turboFilter>
+  <turboFilter class="cambium.logback.core.StrategyTurboFilter">
+    <name>multiStrategy</name>
+  </turboFilter>
+
 </configuration>

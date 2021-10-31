@@ -18,10 +18,7 @@ jobs:
 
     - name: Check deps
       uses: nnichols/clojure-dependency-update-action@v3
-      # Run command outside project to avoid dependency pollution
-      working-directory: ../
       with:
         github-token: ${{ secrets.github_token }}
         branch: main
-        directories: ajanottaja
         batch: true

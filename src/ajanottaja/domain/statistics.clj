@@ -66,6 +66,32 @@
 (def summarised-stats! (partial query-many! summarised-stats))
 
 
+
+(defn calendar-statistics
+  "Return the daily difference between duration worked (intervals) and target durations.-
+   Use an outer join to capture all dates with one or more intervals register and/or a target
+   registered."
+  [{:keys [account]}]
+  (let [tracked [:sum
+                 [:-
+                  [:coalesce [:upper :intervals.interval] [:now]]
+                  [:lower :intervals.interval]]]]
+    {:select [[[:date [:lower :intervals.interval]] :date]
+              [[:sum :targets.duration] :target]
+              [tracked :tracked]
+              [[:- tracked [:sum :targets.duration]] :diff]]
+     :from [:targets]
+     :full-join [[:intervals]
+                 [:= :targets.date [:date [:lower :intervals.interval]]]]
+     :where [:and
+             [:= :targets.account account]
+             [:= :intervals.account account]]
+     :group-by [[:date [:lower :intervals.interval]]]}))
+
+(def calendar-statistics! (partial query-many! calendar-statistics))
+
+
+
 (defn routes
   [server-config]
   ["/statistics"
@@ -88,7 +114,22 @@
                       (f/if-let-ok? [summary (summarised-stats! (-> req :state :datasource)
                                                                 {:account (-> req :claims :sub)})]
                                     {:status 200
-                                     :body summary}))}}]])
+                                     :body summary}))}}]
+   ["/calendar"
+    {:get {:name :statistics-calendar
+           :description "Returns list of dates with summary of target duration, sum of interval durations, and their diff"
+           :parameters {}
+           :responses {200 {:body [:sequential [:map
+                                                [:date :date]
+                                                [:target :duration]
+                                                [:tracked :duration]
+                                                [:diff :duration]]]}}
+           :handler (fn [req]
+                      (log/info "Fetch summary")
+                      (f/if-let-ok? [calendar (calendar-statistics! (-> req :state :datasource)
+                                                                    {:account (-> req :claims :sub)})]
+                                    {:status 200
+                                     :body calendar}))}}]])
 
 (comment
   ;; Query
@@ -105,6 +146,12 @@
       (hsql/format {:pretty true})
       println)
 
+  ;; Generate calendar statistics query
+  (->  {:account #uuid "c3ce6f30-4b13-4252-8799-80783f3d3546"}
+       (calendar-statistics)
+       (hsql/format  {:pretty true})
+       (println))
+
   (as->
    {:account #uuid "c3ce6f30-4b13-4252-8799-80783f3d3546"
     :date (t/today)} q
@@ -116,5 +163,6 @@
     (interval-target-diff q {:date-agg (fn [val] [:to_char [:cast val :timestamptz] [:inline "IYYY-IW"]])})
     (hsql/format q {:pretty true})
     (#(do (tap> q) q))
-    (query! ajanottaja.db/datasource q)))
+    (query! ajanottaja.db/datasource q))
+  )
 

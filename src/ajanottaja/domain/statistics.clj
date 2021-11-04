@@ -90,6 +90,41 @@
 
 (def calendar-statistics! (partial query-many! calendar-statistics))
 
+(def sum-tracked-interval
+  "Select statement for getting sum duration of intervals tracked"
+  [:sum
+   [:-
+    [:coalesce [:upper :intervals.interval] [:now]]
+    [:lower :intervals.interval]]])
+
+
+(defn cumulative-diff
+  "Return the cumulative daily difference between tracked intervals and
+   target durations. Use outer join to capture all dates with one or more
+   intervals and/or target. Also returns the tracked diff and target for
+   each date"
+  [{:keys [account]}]
+  {:with [[:tracked {:select [[[:date [:lower :intervals.interval]] :date]
+                              [sum-tracked-interval :tracked]]
+                     :from [:intervals]
+                     :where [:= :intervals.account account]
+                     :group-by [[:inline 1]]}]
+          [:diff {:select [[[:coalesce :tracked.date :targets.date] :date]
+                           [[:- :tracked.tracked :targets.duration] :diff]
+                           [:targets.duration :target]
+                           [:tracked.tracked :tracked]]
+                  :from [:targets]
+                  :full-join [[:tracked]
+                              [:= :targets.date :tracked.date]]
+                  :where [:= :targets.account account]}]]
+   :select [:*
+            [[:over
+              [[:sum :diff.diff]
+               {:order-by [[:diff.date "asc rows between unbounded preceding and current row"]]}]] :cumulative_diff]]
+   :from [:diff]})
+
+
+(def cumulative-diff! (partial query-many! cumulative-diff))
 
 
 (defn routes
@@ -129,6 +164,22 @@
                       (f/if-let-ok? [calendar (calendar-statistics! (-> req :state :datasource)
                                                                     {:account (-> req :claims :sub)})]
                                     {:status 200
+                                     :body calendar}))}}]
+   ["/cumulative"
+    {:get {:name :statistics-cumulative
+           :description "Returns list of dates with cumulative diff between tracked intervals and targets"
+           :parameters {}
+           :responses {200 {:body [:sequential [:map
+                                                [:date :date]
+                                                [:target :duration]
+                                                [:tracked :duration]
+                                                [:diff :duration]
+                                                [:cumulative-diff :duration]]]}}
+           :handler (fn [req]
+                      (log/info "Fetch summary")
+                      (f/if-let-ok? [calendar (cumulative-diff! (-> req :state :datasource)
+                                                                {:account (-> req :claims :sub)})]
+                                    {:status 200
                                      :body calendar}))}}]])
 
 (comment
@@ -151,6 +202,16 @@
        (calendar-statistics)
        (hsql/format  {:pretty true})
        (println))
+
+  ;; Cumulative calendar diff
+  (-> {:account #uuid "c3ce6f30-4b13-4252-8799-80783f3d3546"}
+      cumulative-calendar-diff
+      (hsql/format {:pretty true}))
+
+  (query-many!
+   cumulative-calendar-diff
+   ajanottaja.db/datasource
+   {:account #uuid "c3ce6f30-4b13-4252-8799-80783f3d3546"})
 
   (as->
    {:account #uuid "c3ce6f30-4b13-4252-8799-80783f3d3546"

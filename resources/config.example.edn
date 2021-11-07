@@ -1,11 +1,20 @@
 ;; Default dev config, should be overwritten using env vars or similar in prod
-{:secrets #include #or [#env AJANOTTAJA_SECRETS_FILE ".secrets.edn"]
+
+{;; Secrets should be loaded from the pwd (current working directory) of the app process
+ :secrets #include #or [#env AJANOTTAJA_SECRETS_FILE ".secrets.edn"]
+
+ ;; Environment should be :dev or :prod
  :env #or [#env AJANOTTAJA_ENV :dev]
+ 
+ ;; Standard postgres connection variables
  :db {:host #or [#env AJANOTTAJA_DB_HOST "snorre"]
       :port #or [#env AJANOTTAJA_DB_PORT "5432"]
       :name #or [#env AJANOTTAJA_DB_NAME "ajanottaja"]
       :user #or [#env AJANOTTAJA_DB_USER "ajanottaja"]
+      ;; Password should be included via the .secrets.edn file
       :password  #ref [:secrets :db :password]}
+ 
+ ;; Variables related to http server like cors rules and own URL
  :server {:url #or [#env AJANOTTAJA_SERVER_URL "http://localhost:3000"]
           :ip #or [#env AJANOTTAJA_SERVER_IP "127.0.0.1"]
           :port #or [#env AJANOTTAJA_SERVER_PORT 3000]
@@ -14,10 +23,10 @@
                         :origins ["http://localhost:3000"
                                   "http://localhost:3001"
                                   "http://localhost:9500"
-                                  "https://dev-ajanottaja.snorre.io"
                                   "https://ajanottaja.app"
                                   "https://api.ajanottaja.app"]
                         :max-age 300}
+          ;; Load API token from .secrets.edn
           :api-token #ref [:secrets :server :api-token]
-          :jwks-url "https://ajanottaja.eu.auth0.com/.well-known/jwks.json"
+          :jwks-url #or [#env AJANOTTAJA_JWKS_URL "https://ajanottaja.eu.auth0.com/.well-known/jwks.json"]
           :swaggerOauth2ClientId #or [#env AJANOTTAJA_SWAGGER_OAUTH2_CLIENT "1A1BhFSU4vlS3qgMPNtgxAXR9c16KjxN"]}}

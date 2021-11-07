@@ -14,3 +14,4 @@ classes
 .DS_Store
 .secrets.edn
 .nrepl-port
+resources/config.edn

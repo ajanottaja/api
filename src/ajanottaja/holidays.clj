@@ -70,14 +70,18 @@
     :fn #(tick/new-date % 12 26)}])
 
 (comment
-  
+
   ;; Get easter sunday for a given year, used as base
   ;; for other easter, ascension, and pentecost holidays.
   (easter-sunday 2021)
   (easter-sunday 2022)
 
+  ;; Get the date of the first sunday of the month
+  (tick/new-date 2021 1 1)
+
   ;; Calculate all the national holidays 2021
   (map (fn [{:keys [name fn]}]
          {:name name
           :date (fn 2021)})
-       national-holidays))
+       national-holidays)
+  )

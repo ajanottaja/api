@@ -1,5 +1,10 @@
 {:config-paths ["configs/malli"]
  :lint-as {ajanottaja.failjure/ok->> clojure.core/->>
            ajanottaja.failjure/ok-> clojure.core/->
-           ajanottaja.failjure/if-let-ok? clojure.core/if-let}
+           ajanottaja.failjure/as-ok-> clojure.core/as->
+           ajanottaja.failjure/if-let-ok? clojure.core/if-let
+           ajanottaja.failjure/attempt->> clojure.core/->>
+           ajanottaja.failjure/cond-ok-> clojure.core/cond->
+           ajanottaja.failjure/cond-ok->> clojure.core/cond->>
+           ajanottaja.failjure/attempt-all clojure.core/let}
  :macroexpansion [midje.sweet/=>]}

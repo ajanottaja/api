@@ -49,6 +49,75 @@
                        data)))
 
 
+(defmacro cond-ok->
+  "Works like clojure.core/cond->, but threads each expr via ok->
+   to short-circuit on any failjures."
+  [start & forms]
+  (assert (even? (count forms))
+          "cond-ok-> takes even number of forms")
+  (if (zero? (count forms))
+    start
+    (let [g (gensym)
+          clauses (map (fn [[condition form]]
+                         `(if ~condition (f/ok-> ~g ~form) ~g))
+                       (partition 2 forms))]
+      `(f/attempt-all [~g ~start
+                       ~@(interleave (repeat g) clauses)]
+                      ~g))))
+
+(defmacro cond-ok->>
+  "Works like clojure.core/cond->>, but threads each expr via ok->>
+   to short-circuit on any failjures."
+  [start & forms]
+  (assert (even? (count forms))
+          "cond-ok-> takes even number of forms")
+  (if (zero? (count forms))
+    start
+    (let [g (gensym)
+          clauses (map (fn [[condition form]]
+                         `(if ~condition (f/ok->> ~g ~form) ~g))
+                       (partition 2 forms))]
+      `(f/attempt-all [~g ~start
+                       ~@(interleave (repeat g) clauses)]
+                      ~g))))
+
+
+
+(comment
+
+  ;; Let's see what the expanded cond-ok-> form looks like
+  (macroexpand-1 '(cond-ok-> 0
+                             true inc
+                             false dec))
+
+  ;; Works just like `cond-ok->` for non-failjure values
+  (cond-ok-> 0
+             true inc
+             false dec)
+
+  ;; Short-circuits on failjures
+  (cond-ok-> 0
+             true inc
+             true ((fn [f] (f/fail "failjure" f)))
+             true inc) ;; Last inc never run
+
+  
+  ;; We can thread last conditionally too
+  (cond-ok->> 0
+              true (+ 10)
+              false dec
+              true (range 0))
+
+
+  (cond-ok-> 0)
+
+  (macroexpand '(f/ok-> 0 inc inc dec str))
+
+
+  (cond-ok-> 0
+             true inc
+             false dec))
+
 
 ;; Rich comments
 
@@ -56,4 +125,6 @@
   (fail "Some bizarro error" {:code 500 :message "Dunno what went wrong."})
   (f/failed? (fail "Some ble" {:code 500}))
   (-> (fail "Foo" {:code 500 :error "What happened here."})
-      (data)))
+      (data))
+
+  (cond->))

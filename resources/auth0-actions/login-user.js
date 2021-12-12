@@ -1,4 +1,6 @@
 const axios = require("axios");
+
+
 /**
  * Handler that will be called during the execution of a PostLogin flow.
  *
@@ -7,9 +9,10 @@ const axios = require("axios");
  */
 exports.onExecutePostLogin = async (event, api) => {
   const apiSecret = event.secrets.API_TOKEN;
+  const apiDomain = event.secrets.API_DOMAIN;
   const auth0Id = event.user.user_id;
   
-  const response = await axios.get(`https://api.ajanottaja.app/auth-zero/get-account/${auth0Id}`, {
+  const response = await axios.get(`https://${apiDomain}/auth-zero/get-account/${auth0Id}`, {
     headers: {authorization: apiSecret}
   });
 

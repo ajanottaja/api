@@ -3,6 +3,8 @@
 .cpcache
 .clj-kondo/.cache
 .clj-kondo/marick
+.clj-kondo/com.github.seancorfield
+
 .vscode
 dev/*
 !dev/docker-compose.yml

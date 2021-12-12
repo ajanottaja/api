@@ -110,9 +110,9 @@
                      :where [:= :intervals.account account]
                      :group-by [[:inline 1]]}]
           [:diff {:select [[[:coalesce :tracked.date :targets.date] :date]
-                           [[:- :tracked.tracked :targets.duration] :diff]
+                           [[:- [:coalesce :tracked.tracked [:inline "PT0S"]] :targets.duration] :diff]
                            [:targets.duration :target]
-                           [:tracked.tracked :tracked]]
+                           [[:coalesce :tracked.tracked [:inline "PT0S"]] :tracked]]
                   :from [:targets]
                   :full-join [[:tracked]
                               [:= :targets.date :tracked.date]]
@@ -202,28 +202,19 @@
        (calendar-statistics)
        (hsql/format  {:pretty true})
        (println))
+  
+  (-> (cumulative-diff! ajanottaja.db/datasource
+                        {:account #uuid "e5b95a55-b732-434b-a7d1-76ada0e8342f"})
+      first)
+  
+  (-> (calendar-statistics! ajanottaja.db/datasource
+                            {:account #uuid "e5b95a55-b732-434b-a7d1-76ada0e8342f"}))
+  
+  (-> (cumulative-diff #_ajanottaja.db/datasource
+                       {:account #uuid "e5b95a55-b732-434b-a7d1-76ada0e8342f"})
+      (hsql/format {:pretty true})
+      println)
 
-  ;; Cumulative calendar diff
-  (-> {:account #uuid "c3ce6f30-4b13-4252-8799-80783f3d3546"}
-      cumulative-calendar-diff
-      (hsql/format {:pretty true}))
 
-  (query-many!
-   cumulative-calendar-diff
-   ajanottaja.db/datasource
-   {:account #uuid "c3ce6f30-4b13-4252-8799-80783f3d3546"})
-
-  (as->
-   {:account #uuid "c3ce6f30-4b13-4252-8799-80783f3d3546"
-    :date (t/today)} q
-    (summarised-stats q)
-    (hsql/format q)
-    (query! ajanottaja.db/datasource q))
-
-  (as-> {:account #uuid "c3ce6f30-4b13-4252-8799-80783f3d3546"} q
-    (interval-target-diff q {:date-agg (fn [val] [:to_char [:cast val :timestamptz] [:inline "IYYY-IW"]])})
-    (hsql/format q {:pretty true})
-    (#(do (tap> q) q))
-    (query! ajanottaja.db/datasource q))
   )
 

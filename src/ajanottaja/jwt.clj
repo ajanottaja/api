@@ -75,7 +75,6 @@
      :on-failed-attempt (fn [_ _] (log/info "JWKS Request failed"))
      :on-success        (fn [_] (log/info "Successfully fetched JWKS"))}
     (let [{:keys [status body error]} @(client/get url)]
-      (log/info status)
       (cond
         error (f/fail "JWKS request error" {:error error})
         (<= 200 status 299) body
@@ -169,7 +168,7 @@
    "{\"https://ajanottaja.snorre.io\": \"test\"}"
    true)
 
-  (fetch-jwks! "https://dalkklajsdjldkjlkdajkladsl.com/.well-known/jwks.jsons")
+  #_(fetch-jwks! "https://dalkklajsdjldkjlkdajkladsl.com/.well-known/jwks.jsons")
 
   (validate-token! "https://ajanottaja.eu.auth0.com/.well-known/jwks.json"
                    "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImtaWnYzajBXNE9KQ21tSk5qQXVkbSJ9.eyJodHRwczovL2FqYW5vdHRhamEuc25vcnJlLmlvL3N1YiI6IjVkOTA4NTZjLTVhNDgtNDZhZS04ZjZlLWEwNjI5NWVhMGRmYiIsImlzcyI6Imh0dHBzOi8vYWphbm90dGFqYS5ldS5hdXRoMC5jb20vIiwic3ViIjoiYXV0aDB8NjA2NDc5ZTJmMjhkZTUwMDY5MTYxYzBkIiwiYXVkIjoiaHR0cHM6Ly9hamFub3R0YWphLnNub3JyZS5pbyIsImlhdCI6MTYxODc0NzI1NywiZXhwIjoxNjE4NzU0NDU3LCJhenAiOiI1Q3hyTlZjUEJtWnlLZk9ndlNiWlQwTFNZdUpKMU9vbSIsInNjb3BlIjoiIn0.aqodPCmQ7uPZq8nJeoRnjO2O_sfRpEkeXqw__DZ-V8su3yG9jMtqeCLaSS_B1g9GtaJSZwIQkmm9g4kj7OvQCUuzIOeeLy0NxlV05_BT2T1DXM2q711D68CBTD6fM88gdaCWBmFqwOuyjMSYAhNh9bRgV4kg6GMGkl68-phYsKTkP70agSyHU3gqRKN_0kg1CKc3S2jHe4hPJYlB-5dEEeC_ejzQnfUyIdmdc3jAbmH6AoqN5jTwsLJIbYzj-GUYoQvhtZ9nWoW70kK-IMa0eXDC6E4y2oB7BjMMa83h3t-RrlAnuBIBj80PknQHouXyp9qwdF85780efCWLErPcOw")
@@ -188,7 +187,7 @@
 
   (buddy-keys/public-key? :foo)
 
-  (fetch-jwks! 10)
+  #_(fetch-jwks! 10)
 
   (malli/validate retry-opts?
                   {:timeout 1000

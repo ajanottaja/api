@@ -218,7 +218,7 @@
 
 
 #_:clj-kondo/ignore
-(defstate bootstrap
+#_(defstate bootstrap
   :start (bootstrap! @config/config)
   :stop  (log/info "Spinning down migrations"))
 

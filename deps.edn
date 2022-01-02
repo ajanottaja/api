@@ -40,6 +40,6 @@
            
            ;; Maybe run som tests once in a while
            :test {:extra-paths ["test/clj"]
-                  :extra-deps {lambdaisland/kaocha {:mvn/version "1.60.945"}
+                  :extra-deps {lambdaisland/kaocha {:mvn/version "1.60.977"}
                                midje/midje {:mvn/version "1.10.5"}}}}}
 

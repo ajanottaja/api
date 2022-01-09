@@ -16,7 +16,7 @@
            functionalbytes/mount-lite {:mvn/version "2.2.1"}
            hiccup/hiccup {:mvn/version "2.0.0-alpha2"}
            hikari-cp/hikari-cp {:mvn/version "2.13.0"}
-           com.github.seancorfield/next.jdbc {:mvn/version "1.2.753"}
+           com.github.seancorfield/next.jdbc {:mvn/version "1.2.761"}
            com.github.seancorfield/honeysql {:mvn/version "2.2.840"}
            ;; Consider using Luminus Undertow ring adapter in place of pohjavirta or http-kit
            ;; https://github.com/luminus-framework/ring-undertow-adapter

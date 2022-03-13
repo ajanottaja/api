@@ -12,7 +12,7 @@
            cambium/cambium.core {:mvn/version "1.1.1"}
            cambium/cambium.codec-simple {:mvn/version "1.0.0"}
            cambium/cambium.logback.core {:mvn/version "0.4.5"}
-           diehard/diehard {:mvn/version "0.11.0"}
+           diehard/diehard {:mvn/version "0.11.1"}
            functionalbytes/mount-lite {:mvn/version "2.2.1"}
            hiccup/hiccup {:mvn/version "2.0.0-alpha2"}
            hikari-cp/hikari-cp {:mvn/version "2.13.0"}

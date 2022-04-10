@@ -1,7 +1,7 @@
 {:deps    {camel-snake-kebab/camel-snake-kebab {:mvn/version "0.4.2"}
            clj-http/clj-http {:mvn/version "3.12.3"}
            failjure/failjure {:mvn/version "2.2.0"}
-           metosin/reitit {:mvn/version "0.5.15"}
+           metosin/reitit {:mvn/version "0.5.18"}
            org.clojure/core.async {:mvn/version "1.5.644"}
            borkdude/sci {:mvn/version "0.2.7"}
            tick/tick {:mvn/version "0.5.0-RC5"}

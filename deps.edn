@@ -12,7 +12,7 @@
            cambium/cambium.core {:mvn/version "1.1.1"}
            cambium/cambium.codec-simple {:mvn/version "1.0.0"}
            cambium/cambium.logback.core {:mvn/version "0.4.5"}
-           diehard/diehard {:mvn/version "0.11.2"}
+           diehard/diehard {:mvn/version "0.11.3"}
            functionalbytes/mount-lite {:mvn/version "2.2.1"}
            hiccup/hiccup {:mvn/version "2.0.0-alpha2"}
            hikari-cp/hikari-cp {:mvn/version "2.14.0"}
@@ -26,7 +26,7 @@
            migratus/migratus {:mvn/version "1.3.6"}
            org.clojure/clojure {:mvn/version "1.11.1"}
            org.clojure/core.memoize {:mvn/version "1.0.257"}
-           org.postgresql/postgresql {:mvn/version "42.3.3"}
+           org.postgresql/postgresql {:mvn/version "42.3.4"}
            org.threeten/threeten-extra {:mvn/version "1.7.0"}
            zerg000000/simple-cors {:mvn/version "0.0.8"}}
  :paths   ["src" "classes" "resources"]
@@ -40,6 +40,6 @@
            
            ;; Maybe run som tests once in a while
            :test {:extra-paths ["test/clj"]
-                  :extra-deps {lambdaisland/kaocha {:mvn/version "1.64.1010"}
+                  :extra-deps {lambdaisland/kaocha {:mvn/version "1.65.1029"}
                                midje/midje {:mvn/version "1.10.5"}}}}}
 
